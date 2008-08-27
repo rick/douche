@@ -1,0 +1,18 @@
+
+--
+TODO: 
+ - allow for processing a directory of files
+ - one mode of processing would be to simply copy files to another location
+ - one mode of processing would be to rename directories (normalize)
+ - one mode of processing would be to look up last.fm metadata
+ - one mode of processing would be to look up musicdns puid, metadata
+ - one mode of processing would be to set id3 tags based on available information
+
+model the processing modes as having:
+
+ - a Specification for whether they should fire
+ - (optionally) an ordering, either linear or DAG, which specified which processes come before which others
+ - a routine which runs
+ - a marker for success (should cause the Specification to fail)
+ - a marker for failure (how will this interact with the Specification)
+
