@@ -1,5 +1,8 @@
 class Douche
+  attr_reader :directory
+  
   def initialize(options)
-    STDERR.puts "options[#{options.inspect}]"
+    raise ArgumentError, ":directory is required" unless options[:directory]
+    @directory = options[:directory]
   end
 end

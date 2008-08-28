@@ -8,7 +8,6 @@ op = OptionParser.new do |opts|
   end
 end.parse!
 
-STDERR.puts "options [#{options.inspect}]"
 options[:directory] ||= Dir.pwd
 
 Douche.new(options)
