@@ -1,3 +1,14 @@
+require 'optparse'
 require 'douche'
 
-Douche.new(:directory => Dir.pwd)
+options = {}
+op = OptionParser.new do |opts|
+  opts.on('-d', '--dir DIRECTORY', "directory to process") do |dir|
+    options[:directory]= dir
+  end
+end.parse!
+
+STDERR.puts "options [#{options.inspect}]"
+options[:directory] ||= Dir.pwd
+
+Douche.new(options)
