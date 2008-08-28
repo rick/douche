@@ -51,4 +51,19 @@ describe Douche do
       Douche.new(@options).dry_run?.should be_false
     end
   end
+  
+  describe 'douche' do
+    before :each do
+      @dir = '/tmp'
+      @douche = Douche.new(:directory => @dir)
+    end
+    
+    it 'should work without arguments' do
+      lambda { @douche.douche }.should_not raise_error(ArgumentError)
+    end
+
+    it 'should not accept any arguments' do
+      lambda { @douche.douche(:foo) }.should raise_error(ArgumentError)
+    end
+  end
 end

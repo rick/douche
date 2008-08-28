@@ -6,6 +6,9 @@ describe 'douche command' do
   
   before :each do
     @default_options = { :directory => Dir.pwd }
+    @douche = Object.new
+    stub(Douche).new { @douche }
+    stub(@douche).douche { true }
   end
 
   def run_command
@@ -23,12 +26,12 @@ describe 'douche command' do
     end
 
     it 'should create a Douche instance' do
-      mock(Douche).new(anything)
+      mock(Douche).new(anything) { @douche }
       run_command
     end
     
     it 'should set the directory option to the current directory' do
-      stub.proxy(Douche).new(:directory => Dir.pwd)
+      stub.proxy(Douche).new(:directory => Dir.pwd) { @douche }
     end
   end
   
@@ -44,7 +47,7 @@ describe 'douche command' do
       end
       
       it 'should pass the directory when creating a Douche instance' do
-        mock(Douche).new({:directory => @dir})
+        mock(Douche).new({:directory => @dir}) { @douche }
         run_command
       end
     end
@@ -56,7 +59,7 @@ describe 'douche command' do
       end
       
       it 'should pass the directory when creating a Douche instance' do
-        mock(Douche).new({:directory => @dir})
+        mock(Douche).new({:directory => @dir}) { @douche }
         run_command        
       end
     end
@@ -70,7 +73,7 @@ describe 'douche command' do
       end
       
       it 'should pass the dry-run argument when creating a Douche instance' do
-        mock(Douche).new(@default_options.merge(:dry_run => true))
+        mock(Douche).new(@default_options.merge(:dry_run => true)) { @douche }
         run_command
       end
     end
@@ -82,9 +85,14 @@ describe 'douche command' do
       end
       
       it 'should pass the directory when creating a Douche instance' do
-        mock(Douche).new(@default_options.merge(:dry_run => true))
+        mock(Douche).new(@default_options.merge(:dry_run => true)) { @douche }
         run_command        
       end
     end
+  end
+  
+  it 'should call douche on the created Douche instance' do
+    mock(@douche).douche
+    run_command
   end
 end

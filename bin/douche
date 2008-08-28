@@ -14,4 +14,5 @@ end.parse!
 
 options[:directory] ||= Dir.pwd
 
-Douche.new(options)
+douche = Douche.new(options)
+douche.douche

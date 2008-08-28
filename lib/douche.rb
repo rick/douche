@@ -10,4 +10,7 @@ class Douche
   def dry_run?
     !! @dry_run
   end
+  
+  def douche
+  end
 end
