@@ -33,4 +33,22 @@ describe Douche do
   it 'should not allow setting the directory' do
     @douche.should_not respond_to(:directory=)
   end
+  
+  it 'should allow retrieving the dry-run status' do
+    @douche.should respond_to(:dry_run?)
+  end
+  
+  it 'should not allow setting the dry-run status' do
+    @douche.should_not respond_to(:dry_run=)
+  end
+  
+  describe 'dry run?' do
+    it 'should be true if initialized with :dry_run => true' do
+      Douche.new(@options.merge(:dry_run => true)).dry_run?.should be_true
+    end
+
+    it 'should be true if not initialized with :dry_run => true' do
+      Douche.new(@options).dry_run?.should be_false
+    end
+  end
 end

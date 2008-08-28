@@ -6,6 +6,10 @@ op = OptionParser.new do |opts|
   opts.on('-d', '--dir DIRECTORY', "directory to process") do |dir|
     options[:directory]= dir
   end
+
+  opts.on('-n', '--dry-run', "Dry run, make no filesystem changes") do |dry|
+    options[:dry_run] = dry
+  end
 end.parse!
 
 options[:directory] ||= Dir.pwd

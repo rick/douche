@@ -3,6 +3,10 @@ require File.expand_path(File.dirname(__FILE__) + '/spec_helper.rb')
 require 'douche'
 
 describe 'douche command' do
+  
+  before :each do
+    @default_options = { :directory => Dir.pwd }
+  end
 
   def run_command
     eval File.read(File.join(File.dirname(__FILE__), *%w[.. bin douche]))
@@ -53,6 +57,32 @@ describe 'douche command' do
       
       it 'should pass the directory when creating a Douche instance' do
         mock(Douche).new({:directory => @dir})
+        run_command        
+      end
+    end
+  end
+
+  describe 'when a dry run is specified on the command-line' do
+    describe 'by --dry-run' do
+      before :each do
+        Object.send(:remove_const, :ARGV)
+        ARGV = ["--dry-run"]        
+      end
+      
+      it 'should pass the dry-run argument when creating a Douche instance' do
+        mock(Douche).new(@default_options.merge(:dry_run => true))
+        run_command
+      end
+    end
+    
+    describe 'by -n' do
+      before :each do
+        Object.send(:remove_const, :ARGV)
+        ARGV = ["-n"]
+      end
+      
+      it 'should pass the directory when creating a Douche instance' do
+        mock(Douche).new(@default_options.merge(:dry_run => true))
         run_command        
       end
     end

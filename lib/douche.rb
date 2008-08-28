@@ -4,5 +4,10 @@ class Douche
   def initialize(options)
     raise ArgumentError, ":directory is required" unless options[:directory]
     @directory = options[:directory]
+    @dry_run = options[:dry_run]
+  end
+  
+  def dry_run?
+    !! @dry_run
   end
 end
