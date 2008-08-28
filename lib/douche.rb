@@ -12,5 +12,10 @@ class Douche
   end
   
   def douche
+    douche_path(directory)
+  end
+  
+  def douche_path(path)
+    
   end
 end

@@ -65,5 +65,25 @@ describe Douche do
     it 'should not accept any arguments' do
       lambda { @douche.douche(:foo) }.should raise_error(ArgumentError)
     end
+    
+    it 'should process all files below the provided directory' do
+      mock(@douche).douche_path(@dir)
+      @douche.douche
+    end
+  end
+  
+  describe 'douche_path' do
+    before :each do
+      @dir = '/tmp'
+      @douche = Douche.new(:directory => @dir)
+    end
+    
+    it 'should accept a path argument' do
+      lambda { @douche.douche_path(@dir) }.should_not raise_error(ArgumentError)
+    end
+    
+    it 'should require a path argument' do
+      lambda { @douche.douche_path }.should raise_error(ArgumentError)
+    end
   end
 end
