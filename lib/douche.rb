@@ -28,7 +28,7 @@ class Douche
   
   def nozzles
     return @nozzles if @nozzles
-    Find.find(nozzle_path) { |nozzle| require nozzle if File.file? nozzle }
+    Find.find(nozzle_path) { |nozzle| require nozzle if File.file? nozzle and nozzle =~ /_nozzle\.rb$/ }
     @nozzles = Nozzle.nozzles
   end
   

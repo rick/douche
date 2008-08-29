@@ -183,6 +183,13 @@ describe Douche do
         mock(Find).find('/path/to/nozzles') { [] }
         @douche.nozzles
       end
+      
+      it 'should only include files named *_nozzle.rb' do
+        @path = File.expand_path(File.dirname(__FILE__) + '/../file_fixtures/bogus_nozzles/')
+        stub(@douche).nozzle_path { @path }
+        Find.find(@path) {|path| mock(@douche).require path if File.file? path and path =~ /_nozzle\.rb$/}
+        @douche.nozzles        
+      end
     
       it 'should instantiate the nozzle objects' do
         @path = File.expand_path(File.dirname(__FILE__) + '/../file_fixtures/nozzles/')
