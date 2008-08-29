@@ -1,4 +1,5 @@
 require 'find'
+require 'nozzle'
 
 class Douche
   attr_reader :directory, :options
