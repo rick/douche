@@ -3,7 +3,7 @@ require 'douche'
 
 options = {}
 op = OptionParser.new do |opts|
-  opts.on('-d', '--dir DIRECTORY', "Directory to process") do |dir|
+  opts.on('-d', '--dir DIRECTORY', "Directory to process (defaults to .)") do |dir|
     options[:directory]= dir
   end
 
