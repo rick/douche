@@ -1,12 +1,13 @@
 require 'find'
 
 class Douche
-  attr_reader :directory
+  attr_reader :directory, :options
   
   def initialize(options)
     raise ArgumentError, ":directory is required" unless options[:directory]
     @directory = options[:directory]
     @dry_run = options[:dry_run]
+    @options = options
   end
   
   def dry_run?
@@ -18,7 +19,7 @@ class Douche
   end
   
   def douche_file(file)
-    nozzles.each {|klass| klass.new.douche(file) }
+    nozzles.each {|klass| klass.new(options).douche(file) }
   end
   
   def nozzles

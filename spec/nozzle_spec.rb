@@ -11,7 +11,7 @@ end
 
 describe Nozzle do
   before :each do
-    @nozzle = Nozzle.new
+    @nozzle = Nozzle.new({})
   end
   
   describe 'as a class' do
@@ -42,9 +42,30 @@ describe Nozzle do
         Nozzle.nozzles.should_not include(Nozzle)
       end
     end
+    
+    describe 'when initializing' do
+      it 'should accept options' do
+        lambda { Nozzle.new({}) }.should_not raise_error(ArgumentError)
+      end
+      
+      it 'should require options' do
+        lambda { Nozzle.new }.should raise_error(ArgumentError)        
+      end
+      
+      it 'should set the options to the provided options list' do
+        @options = { :foo => 'bar', :baz => 'xyzzy' }
+        Nozzle.new(@options).options.should == @options
+      end
+    end
   end
 
-  # TODO: options
+  it 'should allow querying options' do
+    @nozzle.should respond_to(:options)
+  end
+  
+  it 'should not allow setting options' do
+    @nozzle.should_not respond_to(:options=)
+  end
   
   it 'should be able to douche a file' do
     @nozzle.should respond_to(:douche)

@@ -29,9 +29,21 @@ describe Douche do
       lambda { Douche.new(@options.merge({:directory => nil})) }.should raise_error(ArgumentError)
     end
     
-    it 'should set the directory option to the provided value' do |variable|
+    it 'should set the directory option to the provided value' do
       Douche.new(@options).directory.should == @options[:directory]
     end
+    
+    it 'should set the options to the provided options list' do
+      Douche.new(@options).options.should == @options
+    end
+  end
+  
+  it 'should allow retrieving the options' do
+    @douche.should respond_to(:options)    
+  end
+  
+  it 'should not allow setting the options' do
+    @douche.should_not respond_to(:options=)
   end
   
   it 'should allow retrieving the directory' do
@@ -89,8 +101,8 @@ describe Douche do
       
       @nozzle_a = "nozzle a"
       @nozzle_b = "nozzle b"
-      stub(NozzleA).new { @nozzle_a }
-      stub(NozzleB).new { @nozzle_b }
+      stub(NozzleA).new(anything) { @nozzle_a }
+      stub(NozzleB).new(anything) { @nozzle_b }
       stub(@nozzle_a).douche(anything)
       stub(@nozzle_b).douche(anything)
       stub(@douche).nozzles { [ NozzleA, NozzleB ] }
@@ -110,8 +122,8 @@ describe Douche do
     end
     
     it 'should create an instance of each nozzle' do
-      mock(NozzleA).new { @nozzle_a }
-      mock(NozzleB).new { @nozzle_b }
+      mock(NozzleA).new(anything) { @nozzle_a }
+      mock(NozzleB).new(anything) { @nozzle_b }
       @douche.douche_file(:file)
     end
     
