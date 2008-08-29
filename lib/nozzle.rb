@@ -6,4 +6,8 @@ class Nozzle
     end
     subclasses
   end
+  
+  def douche(file)
+    spray file if dirty? file
+  end
 end
