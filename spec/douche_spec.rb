@@ -4,6 +4,12 @@ require 'find'
 require 'douche'
 require 'nozzle'
 
+class NozzleA < Nozzle
+end
+
+class NozzleB < Nozzle
+end
+
 describe Douche do
   before :each do
     @options = { :directory => '/tmp/'}
@@ -80,6 +86,14 @@ describe Douche do
     before :each do
       @dir = File.expand_path(File.dirname(__FILE__) + '/../file_fixtures/simple')
       @douche = Douche.new(:directory => @dir)
+      
+      @nozzle_a = "nozzle a"
+      @nozzle_b = "nozzle b"
+      stub(NozzleA).new { @nozzle_a }
+      stub(NozzleB).new { @nozzle_b }
+      stub(@nozzle_a).douche(anything)
+      stub(@nozzle_b).douche(anything)
+      stub(@douche).nozzles { [ NozzleA, NozzleB ] }
     end
     
     it 'should accept a file path' do
@@ -92,7 +106,19 @@ describe Douche do
     
     it 'should fetch the list of nozzles' do
       mock(@douche).nozzles { [] }
-      @douche.douche_file(:foo)
+      @douche.douche_file(:file)
+    end
+    
+    it 'should create an instance of each nozzle' do
+      mock(NozzleA).new { @nozzle_a }
+      mock(NozzleB).new { @nozzle_b }
+      @douche.douche_file(:file)
+    end
+    
+    it 'should ask each nozzle to douche the file' do
+      mock(@nozzle_a).douche(:file)
+      mock(@nozzle_b).douche(:file)
+      @douche.douche_file(:file)      
     end
   end
   

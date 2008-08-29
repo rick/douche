@@ -18,8 +18,7 @@ class Douche
   end
   
   def douche_file(file)
-    nozzles
-    # TODO: more here
+    nozzles.each {|klass| klass.new.douche(file) }
   end
   
   def nozzles
