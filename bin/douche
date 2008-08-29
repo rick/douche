@@ -11,6 +11,10 @@ op = OptionParser.new do |opts|
     options[:dry_run] = dry
   end
   
+  opts.on('-v', '--verbose', "Verbose output") do |verbose|
+    options[:verbose] = verbose
+  end
+  
   opts.on_tail("-h", "--help", "Show this message") do
     puts opts
     exit

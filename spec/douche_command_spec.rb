@@ -91,6 +91,32 @@ describe 'douche command' do
     end
   end
   
+  describe 'when a verbose output is specified on the command-line' do
+    describe 'by --verbose' do
+      before :each do
+        Object.send(:remove_const, :ARGV)
+        ARGV = ["--verbose"]        
+      end
+      
+      it 'should pass the verbose argument when creating a Douche instance' do
+        mock(Douche).new(@default_options.merge(:verbose => true)) { @douche }
+        run_command
+      end
+    end
+    
+    describe 'by -v' do
+      before :each do
+        Object.send(:remove_const, :ARGV)
+        ARGV = ["-v"]
+      end
+      
+      it 'should pass the directory when creating a Douche instance' do
+        mock(Douche).new(@default_options.merge(:verbose => true)) { @douche }
+        run_command        
+      end
+    end
+  end
+  
   describe 'when help is requested on the command-line' do
     before :each do
       stub(self).exit { 0 }
