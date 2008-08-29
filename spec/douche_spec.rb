@@ -2,6 +2,7 @@ require File.expand_path(File.dirname(__FILE__) + '/spec_helper.rb')
 
 require 'find'
 require 'douche'
+require 'nozzle'
 
 describe Douche do
   before :each do
@@ -87,6 +88,97 @@ describe Douche do
     
     it 'should require a file path' do
       lambda { @douche.douche_file }.should raise_error(ArgumentError)
+    end
+    
+    it 'should fetch the list of nozzles' do
+      mock(@douche).nozzles { [] }
+      @douche.douche_file(:foo)
+    end
+  end
+  
+  describe 'when looking up nozzles' do
+    before :each do
+      @dir = File.expand_path(File.dirname(__FILE__) + '/../file_fixtures/simple')
+      @douche = Douche.new(:directory => @dir)
+      stub(Nozzle).nozzles { [] }
+    end
+    
+    it 'should accept no arguments' do
+      lambda { @douche.nozzles }.should_not raise_error(ArgumentError)
+    end
+    
+    it 'should not allow any arguments' do
+      lambda { @douche.nozzles(:foo) }.should raise_error(ArgumentError)
+    end
+    
+    describe 'the first time' do      
+      it 'should look up the nozzles path' do
+        mock(@douche).nozzle_path { '/path/to/nozzles' }
+        stub(Find).find('/path/to/nozzles') { [] }
+        @douche.nozzles
+      end
+    
+      it 'should find all nozzles in the nozzles path' do
+        stub(@douche).nozzle_path { '/path/to/nozzles' }
+        mock(Find).find('/path/to/nozzles') { [] }
+        @douche.nozzles
+      end
+    
+      it 'should instantiate the nozzle objects' do
+        @path = File.expand_path(File.dirname(__FILE__) + '/../file_fixtures/nozzles/')
+        stub(@douche).nozzle_path { @path }
+        Find.find(@path) {|path| mock(@douche).require path if File.file? path }
+        @douche.nozzles
+      end
+      
+      it 'should return the final list of nozzles' do
+        stub(Nozzle).nozzles { [ 1, 2, 3 ] }
+        @douche.nozzles.should == [ 1, 2, 3 ]
+      end
+    end
+    
+    describe 'after the first time' do
+      before :each do
+        @path = File.expand_path(File.dirname(__FILE__) + '/../file_fixtures/nozzles/')
+        stub(@douche).nozzle_path { @path }
+      end
+      
+      it 'should not look up the nozzles path' do
+        @douche.nozzles
+        mock(@douche).nozzle_path.times(0)
+        @douche.nozzles
+      end
+      
+      it 'should not find nozzles' do
+        @douche.nozzles
+        mock(Find).find.times(0)
+        @douche.nozzles
+      end
+      
+      it 'should not instantiate nozzles' do
+        @douche.nozzles
+        mock(@douche).require.times(0)
+        @douche.nozzles
+      end
+      
+      it 'should return the same list of nozzles as returned the first time' do
+        result = @douche.nozzles
+        @douche.nozzles.should == result
+      end
+    end
+  end
+  
+  describe 'nozzle path' do
+    it 'should accept no arguments' do
+      lambda { @douche.nozzle_path }.should_not raise_error(ArgumentError)
+    end
+    
+    it 'should allow no arguments' do
+      lambda { @douche.nozzle_path(:foo) }.should raise_error(ArgumentError)
+    end
+    
+    it 'should return the path for lib/nozzles' do
+      @douche.nozzle_path.should == File.expand_path(File.dirname(__FILE__) + '/../lib/nozzles/')
     end
   end
 end

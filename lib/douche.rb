@@ -18,6 +18,17 @@ class Douche
   end
   
   def douche_file(file)
-    
+    nozzles
+    # TODO: more here
+  end
+  
+  def nozzles
+    return @nozzles if @nozzles
+    Find.find(nozzle_path) { |nozzle| require nozzle if File.file? nozzle }
+    @nozzles = Nozzle.nozzles
+  end
+  
+  def nozzle_path
+    File.expand_path(File.dirname(__FILE__) + '/nozzles/')
   end
 end
