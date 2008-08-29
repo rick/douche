@@ -85,6 +85,24 @@ describe Nozzle do
     end
   end
   
+  it 'should allow retrieving the verbosity' do
+    @nozzle.should respond_to(:verbose?)
+  end
+  
+  it 'should not allow setting the verbosity' do
+    @nozzle.should_not respond_to(:verbose=)
+  end
+  
+  describe 'verbose?' do
+    it 'should be true if initialized with :verbose => true' do
+      Nozzle.new(:verbose => true).verbose?.should be_true
+    end
+
+    it 'should be true if not initialized with :verbose => true' do
+      Nozzle.new({}).verbose?.should be_false
+    end
+  end
+  
   it 'should be able to douche a file' do
     @nozzle.should respond_to(:douche)
   end
@@ -96,6 +114,28 @@ describe Nozzle do
     
     it 'should require a file argument' do
       lambda { @nozzle.douche }.should raise_error(ArgumentError)
+    end
+    
+    describe 'if verbose mode is enabled' do
+      before :each do
+        stub(@nozzle).verbose? { true }
+      end
+
+      it 'should display a message about processing the file' do
+        mock(@nozzle).puts(anything)
+        @nozzle.douche('file')
+      end
+    end
+    
+    describe 'if verbose mode is disabled' do
+      before :each do
+        stub(@nozzle).verbose? { false }
+      end
+
+      it 'should not display a message about processing the file' do
+        mock(@nozzle).puts(anything).times(0)
+        @nozzle.douche('file')
+      end
     end
     
     it 'should determine if the file needs douching' do

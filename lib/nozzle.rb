@@ -12,13 +12,19 @@ class Nozzle
   def initialize(options)
     @options = options
     @dry_run = options[:dry_run]
+    @verbose = options[:verbose]
   end
   
   def dry_run?
     !! @dry_run
   end
   
+  def verbose?
+    !! @verbose
+  end
+  
   def douche(file)
+    puts "Nozzle [#{self.class.name}] Processing file [#{file}]..." if verbose?
     spray file if !dry_run? and stank? file
   end
   
