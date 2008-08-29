@@ -54,6 +54,24 @@ describe Douche do
     @douche.should_not respond_to(:directory=)
   end
   
+  it 'should allow retrieving the verbosity' do
+    @douche.should respond_to(:verbose?)
+  end
+  
+  it 'should not allow setting the verbosity' do
+    @douche.should_not respond_to(:verbose=)
+  end
+  
+  describe 'verbose?' do
+    it 'should be true if initialized with :verbose => true' do
+      Douche.new(@options.merge(:verbose => true)).verbose?.should be_true
+    end
+
+    it 'should be true if not initialized with :verbose => true' do
+      Douche.new(@options).verbose?.should be_false
+    end
+  end
+  
   describe 'douche' do
     before :each do
       @dir = File.expand_path(File.dirname(__FILE__) + '/../file_fixtures/simple')
@@ -113,6 +131,28 @@ describe Douche do
       mock(@nozzle_a).douche(:file)
       mock(@nozzle_b).douche(:file)
       @douche.douche_file(:file)      
+    end
+
+    describe 'when the verbose flag is set' do
+      before :each do
+        stub(@douche).verbose? { true }
+      end
+      
+      it 'should output a nozzle notification message' do
+        mock(@douche).puts(anything).times(2)
+        @douche.douche_file(:file)      
+      end
+    end
+    
+    describe 'when the verbose flag is not set' do
+      before :each do
+        stub(@douche).verbose? { false }
+      end
+      
+      it 'should not output a nozzle notification message' do
+        mock(@douche).puts(anything).times(0)
+        @douche.douche_file(:file)
+      end
     end
   end
   

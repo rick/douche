@@ -7,7 +7,12 @@ class Douche
   def initialize(options)
     raise ArgumentError, ":directory is required" unless options[:directory]
     @directory = options[:directory]
+    @verbose = options[:verbose]
     @options = options
+  end
+  
+  def verbose?
+    !! @verbose
   end
   
   def douche
@@ -15,7 +20,10 @@ class Douche
   end
   
   def douche_file(file)
-    nozzles.each {|klass| klass.new(options).douche(file) }
+    nozzles.each do |klass|
+      puts "Douching file [#{file}] with nozzle [#{klass.name}]..." if verbose?
+      klass.new(options).douche(file) 
+    end
   end
   
   def nozzles
