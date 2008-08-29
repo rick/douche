@@ -3,12 +3,17 @@ require 'douche'
 
 options = {}
 op = OptionParser.new do |opts|
-  opts.on('-d', '--dir DIRECTORY', "directory to process") do |dir|
+  opts.on('-d', '--dir DIRECTORY', "Directory to process") do |dir|
     options[:directory]= dir
   end
 
   opts.on('-n', '--dry-run', "Dry run, make no filesystem changes") do |dry|
     options[:dry_run] = dry
+  end
+  
+  opts.on_tail("-h", "--help", "Show this message") do
+    puts opts
+    exit
   end
 end.parse!
 

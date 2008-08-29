@@ -91,6 +91,46 @@ describe 'douche command' do
     end
   end
   
+  describe 'when help is requested on the command-line' do
+    before :each do
+      stub(self).exit { 0 }
+    end
+    
+    describe 'by --help' do
+      before :each do
+        Object.send(:remove_const, :ARGV)
+        ARGV = ["--help"]        
+      end
+      
+      it 'should output a help message' do
+        mock(self).puts(anything)
+        run_command
+      end
+      
+      it 'should exit' do
+        mock(self).exit
+        run_command
+      end
+    end
+    
+    describe 'by -h' do
+      before :each do
+        Object.send(:remove_const, :ARGV)
+        ARGV = ["-h"]        
+      end
+      
+      it 'should output a help message' do
+        mock(self).puts(anything)
+        run_command
+      end
+      
+      it 'should exit' do
+        mock(self).exit
+        run_command
+      end
+    end
+  end
+  
   it 'should call douche on the created Douche instance' do
     mock(@douche).douche
     run_command
