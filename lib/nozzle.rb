@@ -8,6 +8,10 @@ class Nozzle
   end
   
   def douche(file)
-    spray file if dirty? file
+    spray file if stank? file
+  end
+  
+  def stank?(file)
+    false
   end
 end

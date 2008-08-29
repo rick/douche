@@ -60,13 +60,13 @@ describe Nozzle do
     end
     
     it 'should determine if the file needs douching' do
-      mock(@nozzle).dirty?(:file)
+      mock(@nozzle).stank?(:file)
       @nozzle.douche(:file)
     end
     
     describe 'when the file needs douching' do
       before :each do
-        stub(@nozzle).dirty?(:file) { true }
+        stub(@nozzle).stank?(:file) { true }
       end
       
       it 'should spray the file' do
@@ -77,13 +77,27 @@ describe Nozzle do
     
     describe 'when the file does not need douching' do
       before :each do
-        stub(@nozzle).dirty?(:file) { false }
+        stub(@nozzle).stank?(:file) { false }
       end
       
       it 'should not spray the file' do
         mock(@nozzle).spray(:file).times(0)
         @nozzle.douche(:file)
       end
+    end
+  end
+  
+  describe 'stank?' do
+    it 'should accept a file' do
+      lambda { @nozzle.stank?(:file) }.should_not raise_error(ArgumentError)
+    end
+    
+    it 'should require a file' do
+      lambda { @nozzle.stank? }.should raise_error(ArgumentError)
+    end
+    
+    it 'should return false' do
+      @nozzle.stank?(:file).should_not be_true
     end
   end
 end
