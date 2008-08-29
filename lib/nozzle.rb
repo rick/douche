@@ -22,7 +22,12 @@ class Nozzle
     spray file if !dry_run? and stank? file
   end
   
+  # to be overridden by descendant Nozzles
   def stank?(file)
     false
+  end
+  
+  # to be overridden by descendant Nozzles
+  def spray(file)
   end
 end

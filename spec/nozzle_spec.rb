@@ -156,5 +156,15 @@ describe Nozzle do
       @nozzle.stank?(:file).should_not be_true
     end
   end
+  
+  describe 'stank?' do
+    it 'should accept a file' do
+      lambda { @nozzle.spray(:file) }.should_not raise_error(ArgumentError)
+    end
+    
+    it 'should require a file' do
+      lambda { @nozzle.spray }.should raise_error(ArgumentError)
+    end
+  end  
 end
 
