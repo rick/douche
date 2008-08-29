@@ -1,5 +1,6 @@
 require File.expand_path(File.dirname(__FILE__) + '/spec_helper.rb')
 
+require 'find'
 require 'douche'
 
 describe Douche do
@@ -54,36 +55,38 @@ describe Douche do
   
   describe 'douche' do
     before :each do
-      @dir = '/tmp'
+      @dir = File.expand_path(File.dirname(__FILE__) + '/../file_fixtures/simple')
       @douche = Douche.new(:directory => @dir)
     end
     
     it 'should work without arguments' do
       lambda { @douche.douche }.should_not raise_error(ArgumentError)
     end
-
+    
     it 'should not accept any arguments' do
       lambda { @douche.douche(:foo) }.should raise_error(ArgumentError)
     end
     
-    it 'should process all files below the provided directory' do
-      mock(@douche).douche_path(@dir)
+    it 'should douche all files under the current directory' do
+      Find.find(@dir) do |path|
+        mock(@douche).douche_file(path) if File.file? path
+      end
       @douche.douche
     end
   end
   
-  describe 'douche_path' do
+  describe 'douching a file' do
     before :each do
-      @dir = '/tmp'
+      @dir = File.expand_path(File.dirname(__FILE__) + '/../file_fixtures/simple')
       @douche = Douche.new(:directory => @dir)
     end
     
-    it 'should accept a path argument' do
-      lambda { @douche.douche_path(@dir) }.should_not raise_error(ArgumentError)
+    it 'should accept a file path' do
+      lambda { @douche.douche_file(:foo) }.should_not raise_error(ArgumentError)
     end
     
-    it 'should require a path argument' do
-      lambda { @douche.douche_path }.should raise_error(ArgumentError)
+    it 'should require a file path' do
+      lambda { @douche.douche_file }.should raise_error(ArgumentError)
     end
   end
 end

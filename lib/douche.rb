@@ -1,3 +1,5 @@
+require 'find'
+
 class Douche
   attr_reader :directory
   
@@ -12,10 +14,10 @@ class Douche
   end
   
   def douche
-    douche_path(directory)
+    Find.find(directory) { |path| douche_file(path) if File.file? path }
   end
   
-  def douche_path(path)
+  def douche_file(file)
     
   end
 end
