@@ -67,6 +67,24 @@ describe Nozzle do
     @nozzle.should_not respond_to(:options=)
   end
   
+  it 'should allow retrieving the dry-run status' do
+    @nozzle.should respond_to(:dry_run?)
+  end
+  
+  it 'should not allow setting the dry-run status' do
+    @nozzle.should_not respond_to(:dry_run=)
+  end
+  
+  describe 'dry run?' do
+    it 'should be true if initialized with :dry_run => true' do
+      Nozzle.new(:dry_run => true).dry_run?.should be_true
+    end
+
+    it 'should be true if not initialized with :dry_run => true' do
+      Nozzle.new({}).dry_run?.should be_false
+    end
+  end
+  
   it 'should be able to douche a file' do
     @nozzle.should respond_to(:douche)
   end
@@ -90,9 +108,26 @@ describe Nozzle do
         stub(@nozzle).stank?(:file) { true }
       end
       
-      it 'should spray the file' do
-        mock(@nozzle).spray(:file)
-        @nozzle.douche(:file)
+      describe 'if dry-run mode is enabled' do
+        before :each do
+          stub(@nozzle).dry_run? { true }
+        end
+        
+        it 'should not spray the file' do
+          mock(@nozzle).spray(:file).times(0)
+          @nozzle.douche(:file)
+        end
+      end
+      
+      describe 'if dry-run mode is disabled' do
+        before :each do
+          stub(@nozzle).dry_run? { false }
+        end
+        
+        it 'should spray the file' do
+          mock(@nozzle).spray(:file)
+          @nozzle.douche(:file)
+        end
       end
     end
     
