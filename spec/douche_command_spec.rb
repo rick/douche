@@ -46,7 +46,7 @@ describe 'douche command' do
         ARGV = ["--dir", @dir]        
       end
       
-      it 'should pass the directory when creating a Douche instance' do
+      it 'should pass the directory option when creating a Douche instance' do
         mock(Douche).new({:directory => @dir}) { @douche }
         run_command
       end
@@ -58,7 +58,7 @@ describe 'douche command' do
         ARGV = ["-d", @dir]        
       end
       
-      it 'should pass the directory when creating a Douche instance' do
+      it 'should pass the directory option when creating a Douche instance' do
         mock(Douche).new({:directory => @dir}) { @douche }
         run_command        
       end
@@ -72,7 +72,7 @@ describe 'douche command' do
         ARGV = ["--dry-run"]        
       end
       
-      it 'should pass the dry-run argument when creating a Douche instance' do
+      it 'should pass the dry-run option when creating a Douche instance' do
         mock(Douche).new(@default_options.merge(:dry_run => true)) { @douche }
         run_command
       end
@@ -84,7 +84,7 @@ describe 'douche command' do
         ARGV = ["-n"]
       end
       
-      it 'should pass the directory when creating a Douche instance' do
+      it 'should pass the dry-run option when creating a Douche instance' do
         mock(Douche).new(@default_options.merge(:dry_run => true)) { @douche }
         run_command        
       end
@@ -98,7 +98,7 @@ describe 'douche command' do
         ARGV = ["--verbose"]        
       end
       
-      it 'should pass the verbose argument when creating a Douche instance' do
+      it 'should pass the verbose option when creating a Douche instance' do
         mock(Douche).new(@default_options.merge(:verbose => true)) { @douche }
         run_command
       end
@@ -110,7 +110,7 @@ describe 'douche command' do
         ARGV = ["-v"]
       end
       
-      it 'should pass the directory when creating a Douche instance' do
+      it 'should pass the verbose option when creating a Douche instance' do
         mock(Douche).new(@default_options.merge(:verbose => true)) { @douche }
         run_command        
       end
@@ -134,6 +134,7 @@ describe 'douche command' do
       end
       
       it 'should exit' do
+        stub(self).puts(anything) { nil }
         mock(self).exit
         run_command
       end
@@ -151,6 +152,7 @@ describe 'douche command' do
       end
       
       it 'should exit' do
+        stub(self).puts(anything) { nil }
         mock(self).exit
         run_command
       end

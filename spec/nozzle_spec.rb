@@ -59,152 +59,154 @@ describe Nozzle do
     end
   end
 
-  it 'should allow querying options' do
-    @nozzle.should respond_to(:options)
-  end
-  
-  it 'should not allow setting options' do
-    @nozzle.should_not respond_to(:options=)
-  end
-  
-  it 'should allow retrieving the dry-run status' do
-    @nozzle.should respond_to(:dry_run?)
-  end
-  
-  it 'should not allow setting the dry-run status' do
-    @nozzle.should_not respond_to(:dry_run=)
-  end
-  
-  describe 'dry run?' do
-    it 'should be true if initialized with :dry_run => true' do
-      Nozzle.new(:dry_run => true).dry_run?.should be_true
+  describe 'once initialized' do
+    it 'should allow querying options' do
+      @nozzle.should respond_to(:options)
     end
-
-    it 'should be true if not initialized with :dry_run => true' do
-      Nozzle.new({}).dry_run?.should be_false
-    end
-  end
   
-  it 'should allow retrieving the verbosity' do
-    @nozzle.should respond_to(:verbose?)
-  end
-  
-  it 'should not allow setting the verbosity' do
-    @nozzle.should_not respond_to(:verbose=)
-  end
-  
-  describe 'verbose?' do
-    it 'should be true if initialized with :verbose => true' do
-      Nozzle.new(:verbose => true).verbose?.should be_true
+    it 'should not allow setting options' do
+      @nozzle.should_not respond_to(:options=)
     end
-
-    it 'should be true if not initialized with :verbose => true' do
-      Nozzle.new({}).verbose?.should be_false
-    end
-  end
   
-  it 'should be able to douche a file' do
-    @nozzle.should respond_to(:douche)
-  end
+    it 'should allow retrieving the dry-run status' do
+      @nozzle.should respond_to(:dry_run?)
+    end
   
-  describe 'when douching a file' do
-    it 'should accept a file argument' do
-      lambda { @nozzle.douche(:file) }.should_not raise_error(ArgumentError)
+    it 'should not allow setting the dry-run status' do
+      @nozzle.should_not respond_to(:dry_run=)
     end
-    
-    it 'should require a file argument' do
-      lambda { @nozzle.douche }.should raise_error(ArgumentError)
-    end
-    
-    describe 'if verbose mode is enabled' do
-      before :each do
-        stub(@nozzle).verbose? { true }
+  
+    describe 'when retrieving the dry-run status' do
+      it 'should be true if nozzle was initialized with the option :dry_run => true' do
+        Nozzle.new(:dry_run => true).dry_run?.should be_true
       end
 
-      it 'should display a message about processing the file' do
-        mock(@nozzle).puts(anything)
-        @nozzle.douche('file')
+      it 'should be false if nozzle was not initialized with the option :dry_run => true' do
+        Nozzle.new({}).dry_run?.should be_false
       end
     end
-    
-    describe 'if verbose mode is disabled' do
-      before :each do
-        stub(@nozzle).verbose? { false }
+  
+    it 'should allow retrieving the verbosity' do
+      @nozzle.should respond_to(:verbose?)
+    end
+  
+    it 'should not allow setting the verbosity' do
+      @nozzle.should_not respond_to(:verbose=)
+    end
+  
+    describe 'when retrieving the verbosity' do
+      it 'should be true if nozzle was initialized with the option :verbose => true' do
+        Nozzle.new(:verbose => true).verbose?.should be_true
       end
 
-      it 'should not display a message about processing the file' do
-        mock(@nozzle).puts(anything).times(0)
-        @nozzle.douche('file')
+      it 'should be false if nozzle was not initialized with the option :verbose => true' do
+        Nozzle.new({}).verbose?.should be_false
       end
     end
-    
-    it 'should determine if the file needs douching' do
-      mock(@nozzle).stank?(:file)
-      @nozzle.douche(:file)
+  
+    it 'should be able to douche a file' do
+      @nozzle.should respond_to(:douche)
     end
-    
-    describe 'when the file needs douching' do
-      before :each do
-        stub(@nozzle).stank?(:file) { true }
+  
+    describe 'when douching a file' do
+      it 'should accept a file argument' do
+        lambda { @nozzle.douche(:file) }.should_not raise_error(ArgumentError)
       end
-      
-      describe 'if dry-run mode is enabled' do
+    
+      it 'should require a file argument' do
+        lambda { @nozzle.douche }.should raise_error(ArgumentError)
+      end
+    
+      describe 'if verbose mode is enabled' do
         before :each do
-          stub(@nozzle).dry_run? { true }
+          stub(@nozzle).verbose? { true }
         end
+
+        it 'should display a message about processing the file' do
+          mock(@nozzle).puts(anything)
+          @nozzle.douche('file')
+        end
+      end
+    
+      describe 'if verbose mode is disabled' do
+        before :each do
+          stub(@nozzle).verbose? { false }
+        end
+
+        it 'should not display a message about processing the file' do
+          mock(@nozzle).puts(anything).times(0)
+          @nozzle.douche('file')
+        end
+      end
+    
+      it 'should determine if the file needs douching' do
+        mock(@nozzle).stank?(:file)
+        @nozzle.douche(:file)
+      end
+    
+      describe 'when the file needs douching' do
+        before :each do
+          stub(@nozzle).stank?(:file) { true }
+        end
+      
+        describe 'if dry-run mode is enabled' do
+          before :each do
+            stub(@nozzle).dry_run? { true }
+          end
         
+          it 'should not spray the file' do
+            mock(@nozzle).spray(:file).times(0)
+            @nozzle.douche(:file)
+          end
+        end
+      
+        describe 'if dry-run mode is disabled' do
+          before :each do
+            stub(@nozzle).dry_run? { false }
+          end
+        
+          it 'should spray the file' do
+            mock(@nozzle).spray(:file)
+            @nozzle.douche(:file)
+          end
+        end
+      end
+    
+      describe 'when the file does not need douching' do
+        before :each do
+          stub(@nozzle).stank?(:file) { false }
+        end
+      
         it 'should not spray the file' do
           mock(@nozzle).spray(:file).times(0)
           @nozzle.douche(:file)
         end
       end
-      
-      describe 'if dry-run mode is disabled' do
-        before :each do
-          stub(@nozzle).dry_run? { false }
-        end
-        
-        it 'should spray the file' do
-          mock(@nozzle).spray(:file)
-          @nozzle.douche(:file)
-        end
+    end
+  
+    describe 'when checking if a file is stank' do
+      it 'should accept a file' do
+        lambda { @nozzle.stank?(:file) }.should_not raise_error(ArgumentError)
+      end
+    
+      it 'should require a file' do
+        lambda { @nozzle.stank? }.should raise_error(ArgumentError)
+      end
+    
+      it 'should return false' do
+        @nozzle.stank?(:file).should_not be_true
       end
     end
-    
-    describe 'when the file does not need douching' do
-      before :each do
-        stub(@nozzle).stank?(:file) { false }
+  
+    describe 'when spraying a file' do
+      it 'should accept a file' do
+        lambda { @nozzle.spray(:file) }.should_not raise_error(ArgumentError)
       end
-      
-      it 'should not spray the file' do
-        mock(@nozzle).spray(:file).times(0)
-        @nozzle.douche(:file)
+    
+      it 'should require a file' do
+        lambda { @nozzle.spray }.should raise_error(ArgumentError)
       end
     end
   end
-  
-  describe 'stank?' do
-    it 'should accept a file' do
-      lambda { @nozzle.stank?(:file) }.should_not raise_error(ArgumentError)
-    end
-    
-    it 'should require a file' do
-      lambda { @nozzle.stank? }.should raise_error(ArgumentError)
-    end
-    
-    it 'should return false' do
-      @nozzle.stank?(:file).should_not be_true
-    end
-  end
-  
-  describe 'stank?' do
-    it 'should accept a file' do
-      lambda { @nozzle.spray(:file) }.should_not raise_error(ArgumentError)
-    end
-    
-    it 'should require a file' do
-      lambda { @nozzle.spray }.should raise_error(ArgumentError)
-    end
-  end  
 end
 
