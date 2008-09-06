@@ -225,6 +225,7 @@ describe Douchebag do
       before :each do
         stub(DoucheConfig).new(@options) { {} }
         stub(@douchebag).nozzle_name { 'nozzle' }
+        stub(@douchebag).active?(anything) { true }
         @path = '/path/to/nozzle_nozzle.rb'
       end
       
@@ -303,15 +304,39 @@ describe Douchebag do
     end
     
     describe 'when determining whether a Nozzle is active' do
+      before :each do
+        @name = 'shizzle'
+        @doucheconfig = {}
+        stub(@doucheconfig).nozzle_is_active?(anything) { true }
+        stub(@douchebag).config { @doucheconfig }
+      end
+      
       it 'should accept a nozzle name' do
-        lambda { @douchebag.active?(:foo) }.should_not raise_error(ArgumentError)
+        lambda { @douchebag.active?(@name) }.should_not raise_error(ArgumentError)
       end
 
       it 'should require a nozzle name' do
         lambda { @douchebag.active? }.should raise_error(ArgumentError)
       end
       
-      it 'should do some other shit (which is really interaction with DoucheConfig)'
+      it 'should ask the config if the named nozzle is active' do
+        mock(@doucheconfig).nozzle_is_active?(@name) { true }
+        @douchebag.active?(@name)
+      end
+
+      describe 'and the config says the nozzle is inactive' do
+        it 'should return false' do
+          stub(@doucheconfig).nozzle_is_active?(anything) { false }
+          @douchebag.active?(@name).should be_false          
+        end
+      end
+
+      describe 'and the config says the nozzle is active' do
+        it 'should return true' do
+          stub(@doucheconfig).nozzle_is_active?(anything) { true }
+          @douchebag.active?(@name).should be_true          
+        end
+      end
     end
 
     describe 'when extracting the nozzle name from a nozzle path' do

@@ -21,10 +21,6 @@ describe DoucheConfig do
     it 'should set the options to the provided options list' do
       DoucheConfig.new(@options).options.should == @options
     end
-    
-    it 'should not initialize the configuration' do
-      DoucheConfig.new(@options).config.should be_nil
-    end
   end
 
   describe 'once initialized' do
@@ -52,6 +48,22 @@ describe DoucheConfig do
       @doucheconfig.should_not respond_to(:config=)
     end
 
+    it 'should allow determining if a named nozzle is active' do
+      @doucheconfig.should respond_to(:nozzle_is_active?)
+    end
+    
+    describe "when determining if a named nozzle is active" do
+      it 'should accept a nozzle name' do
+        lambda { @doucheconfig.nozzle_is_active?('shizzle') }.should_not raise_error(ArgumentError)
+      end
+      
+      it 'should require a nozzle name' do
+        lambda { @doucheconfig.nozzle_is_active? }.should raise_error(ArgumentError)
+      end
+      
+      it 'should do something more (see spike)'
+    end
+
     describe 'when retrieving the verbosity' do
       it 'should be true if doucheconfig was initialized with the option :verbose => true' do
         DoucheConfig.new(@options.merge(:verbose => true)).verbose?.should be_true
@@ -62,7 +74,7 @@ describe DoucheConfig do
       end
     end
 
-    describe 'when loading the configuration' do
+    describe 'when retrieving the configuration' do
       before :each do
         @config_path = '/path/to/config'
         stub(@doucheconfig).config_path { @config_path }
@@ -70,40 +82,34 @@ describe DoucheConfig do
       end
       
       it 'should work without arguments' do
-        lambda { @doucheconfig.load_configuration }.should_not raise_error(ArgumentError)
+        lambda { @doucheconfig.config }.should_not raise_error(ArgumentError)
       end
       
       it 'should not allow arguments' do
-        lambda { @doucheconfig.load_configuration(:foo) }.should raise_error(ArgumentError)
+        lambda { @doucheconfig.config(:foo) }.should raise_error(ArgumentError)
       end
       
       describe 'the first time' do
         it 'should ask for the configuration filename' do
           mock(@doucheconfig).config_path { @config_path }
-          @doucheconfig.load_configuration
+          @doucheconfig.config
         end
       
         it 'should read the configuration file' do
           mock(File).read(@config_path) { YAML.dump({}) }
-          @doucheconfig.load_configuration
+          @doucheconfig.config
         end
       
         describe 'when the configuration file cannot be read' do
           it 'should fail' do
             stub(File).read(anything) { raise Errno::ENOENT }
-            lambda { @doucheconfig.load_configuration }.should raise_error(Errno::ENOENT)
+            lambda { @doucheconfig.config }.should raise_error(Errno::ENOENT)
           end
         end
 
         describe 'when the configuration file can be read' do
           it 'should return an un-YAMLized version of the configuration data' do
             stub(File).read(@config_path) { YAML.dump({}) }
-            @doucheconfig.load_configuration.should == {}
-          end
-          
-          it 'should save the loaded configuration data' do
-            stub(File).read(@config_path) { YAML.dump({}) }
-            @doucheconfig.load_configuration
             @doucheconfig.config.should == {}
           end
         end
@@ -111,21 +117,21 @@ describe DoucheConfig do
       
       describe 'after the first time' do
         before :each do
-          @results = @doucheconfig.load_configuration
+          @results = @doucheconfig.config
         end
         
         it 'should not ask for the configuration file name' do
           mock(@doucheconfig).config_path(anything).never
-          @doucheconfig.load_configuration
+          @doucheconfig.config
         end
         
         it 'should not read any files' do
           mock(File).read(anything).never
-          @doucheconfig.load_configuration
+          @doucheconfig.config
         end
         
         it 'should return the same configuration data returned the first time' do
-          @doucheconfig.load_configuration.should == @results          
+          @doucheconfig.config.should == @results          
         end
       end
     end

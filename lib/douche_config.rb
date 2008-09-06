@@ -1,7 +1,7 @@
 require 'yaml'
 
 class DoucheConfig
-  attr_reader :directory, :options, :config
+  attr_reader :directory, :options
   
   def initialize(options)
     raise ArgumentError, ":directory is required" unless options[:directory]
@@ -13,8 +13,11 @@ class DoucheConfig
   def verbose?
     !! @verbose
   end
+  
+  def nozzle_is_active?(name)
+  end
 
-  def load_configuration
+  def config
     @config ||= YAML.load(File.read(config_path))
   end
   
