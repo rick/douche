@@ -1,6 +1,6 @@
 require 'find'
-require 'yaml'
 require 'nozzle'
+require 'douche_config'
 
 class Douchebag
   attr_reader :directory, :options, :config
@@ -18,8 +18,7 @@ class Douchebag
   
   def nozzles
     return @nozzles if @nozzles
-    # TODO:  This should probably be in the Nozzle class
-    Find.find(nozzle_path) { |nozzle| require nozzle if applicable_nozzle?(nozzle) }
+    Find.find(nozzle_path) { |nozzle| require nozzle if applicable?(nozzle) }
     @nozzles = Nozzle.nozzles
   end
   
@@ -28,7 +27,6 @@ class Douchebag
   end
 
   def applicable?(nozzle_path)
-    @config = load_configuration unless config
     return false unless name = nozzle_name(nozzle_path)
     active?(name)
   end
@@ -39,17 +37,10 @@ class Douchebag
   end
   
   def active?(name)
-    # TODO:
-  end
-
-  # TODO:  this should probably be moved out to a configuration class
-  def load_configuration
-    YAML.load(File.read(config_path))
+    # config. (something about the .directory somehow enclosing or overlapping one of the paths in the nozzle's path list)
   end
   
-  # TODO: this should probably be moved out to a configuration class
-  def config_path
-    raise "Cannot determine home directory when looking up configuration file path" unless ENV['HOME']
-    File.join(ENV['HOME'], '.douche.yml')
+  def config
+    @config ||= DoucheConfig.new(options)
   end
 end

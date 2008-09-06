@@ -1,7 +1,6 @@
 require File.expand_path(File.dirname(__FILE__) + '/spec_helper.rb')
 
 require 'find'
-require 'yaml'
 require 'douchebag'
 
 describe Douchebag do
@@ -29,10 +28,6 @@ describe Douchebag do
     
     it 'should set the options to the provided options list' do
       Douchebag.new(@options).options.should == @options
-    end
-    
-    it 'should not initialize the configuration' do
-      Douchebag.new(@options).config.should be_nil
     end
   end
 
@@ -78,13 +73,50 @@ describe Douchebag do
         Douchebag.new(@options).verbose?.should be_false
       end
     end
+    
+    describe 'when retrieving the config' do
+      before :each do
+        stub(DoucheConfig).new(anything) { {} }
+      end
+      
+      describe 'the first time' do
+        it 'should create a new douche config' do
+          mock(DoucheConfig).new(anything) { {} }
+          @douchebag.config
+        end
+        
+        it 'should supply the douche config with our options' do
+          mock(DoucheConfig).new(@options) { {} }
+          @douchebag.config          
+        end
+        
+        it 'should return the douche config' do
+          @douchebag.config.should == {}
+        end
+      end
+      
+      describe 'after the first time' do
+        before :each do
+          @results = @douchebag.config
+        end
+        
+        it 'should not create a new douche config' do
+          mock(DoucheConfig).new(anything).never
+          @douchebag.config
+        end
+        
+        it 'should return the same douche config as was returned the first time' do
+          @douchebag.config.should == @results
+        end
+      end
+    end
   
     describe 'when looking up nozzles' do
       before :each do
         @dir = File.expand_path(File.dirname(__FILE__) + '/../file_fixtures/simple')
         @douchebag = Douchebag.new(:directory => @dir)
         stub(Nozzle).nozzles { [] }
-        stub(@douchebag).applicable_nozzle?(anything) { false }
+        stub(@douchebag).applicable?(anything) { false }
       end
     
       it 'should accept no arguments' do
@@ -110,7 +142,7 @@ describe Douchebag do
         
         it 'should check if each file is an applicable nozzle file' do
           stub(@douchebag).nozzle_path { @dir }
-          Find.find(@dir) {|path| mock(@douchebag).applicable_nozzle?(path) { false } }
+          Find.find(@dir) {|path| mock(@douchebag).applicable?(path) { false } }
           @douchebag.nozzles
         end
         
@@ -119,7 +151,7 @@ describe Douchebag do
             @path = File.expand_path(File.dirname(__FILE__) + '/../file_fixtures/nozzles/')
             stub(@douchebag).nozzle_path { @dir }
             Find.find(@dir) do |path| 
-              stub(@douchebag).applicable_nozzle?(path) { true }
+              stub(@douchebag).applicable?(path) { true }
               mock(@douchebag).require path 
             end
             @douchebag.nozzles
@@ -130,7 +162,7 @@ describe Douchebag do
               @path = File.expand_path(File.dirname(__FILE__) + '/../file_fixtures/nozzles/')
               stub(@douchebag).nozzle_path { @dir }
               Find.find(@dir) do |path| 
-                stub(@douchebag).applicable_nozzle?(path) { false }
+                stub(@douchebag).applicable?(path) { false }
                 mock(@douchebag).require(path).never
               end
               @douchebag.nozzles
@@ -191,7 +223,7 @@ describe Douchebag do
     
     describe 'when determining if a nozzle is applicable' do
       before :each do
-        stub(@douchebag).load_configuration { { } }
+        stub(DoucheConfig).new(@options) { {} }
         stub(@douchebag).nozzle_name { 'nozzle' }
         @path = '/path/to/nozzle_nozzle.rb'
       end
@@ -205,16 +237,6 @@ describe Douchebag do
       end
       
       describe 'when called the first time' do
-        it 'should pull in the configuration options' do
-          mock(@douchebag).load_configuration { {} }
-          @douchebag.applicable?(@path)          
-        end
-        
-        it 'should store the configuration options' do
-          @douchebag.applicable?(@path)
-          @douchebag.config.should == {}
-        end
-
         it 'should extract the nozzle name from the nozzle path' do
           mock(@douchebag).nozzle_name(@path) { 'nozzle' }
           @douchebag.applicable?(@path)
@@ -234,7 +256,6 @@ describe Douchebag do
             @douchebag.applicable?(@path).should be_false
           end
         end
-
 
         describe 'if the extracted nozzle name is set' do
           before :each do
@@ -290,85 +311,7 @@ describe Douchebag do
         lambda { @douchebag.active? }.should raise_error(ArgumentError)
       end
       
-      it 'should do some other shit (which is really based on the config file format)'
-    end
-
-    describe 'when loading the configuration' do
-      before :each do
-        @config_path = '/path/to/config'
-        stub(@douchebag).config_path { @config_path }
-        stub(File).read(anything) { YAML.dump({}) }        
-      end
-      
-      it 'should work without arguments' do
-        lambda { @douchebag.load_configuration }.should_not raise_error(ArgumentError)
-      end
-      
-      it 'should not allow arguments' do
-        lambda { @douchebag.load_configuration(:foo) }.should raise_error(ArgumentError)
-      end
-      
-      it 'should ask for the configuration filename' do
-        mock(@douchebag).config_path { @config_path }
-        @douchebag.load_configuration
-      end
-      
-      it 'should read the configuration file' do
-        mock(File).read(@config_path) { YAML.dump({}) }
-        @douchebag.load_configuration
-      end
-      
-      describe 'when the configuration file can be read' do
-        it 'should return an un-YAMLized version of the configuration data' do
-          stub(File).read(@config_path) { YAML.dump({}) }
-          @douchebag.load_configuration.should == {}
-        end        
-      end
-      
-      describe 'when the configuration file cannot be read' do
-        it 'should fail' do
-          stub(File).read(anything) { raise Errno::ENOENT }
-          lambda { @douchebag.load_configuration }.should raise_error(Errno::ENOENT)
-        end
-      end
-    end
-
-    describe 'when looking up the configuration file path' do
-      it 'should work without arguments' do
-        lambda { @douchebag.config_path }.should_not raise_error(ArgumentError)
-      end
-
-      it 'should not allow arguments' do
-        lambda { @douchebag.config_path(:foo) }.should raise_error(ArgumentError)
-      end
-      
-      describe "when the user's home directory can be determined" do
-        before :each do
-          @prior_home, ENV['HOME'] = ENV['HOME'], '/Users/rick'
-        end
-        
-        after :each do
-          ENV['HOME'] = @prior_HOME
-        end
-        
-        it "return the path to .douche.yml in the user's home directory" do
-          @douchebag.config_path.should == File.join(ENV['HOME'], '.douche.yml')
-        end        
-      end
-      
-      describe "when the user's home directory cannot be determined" do
-        before :each do
-          @prior_home, ENV['HOME'] = ENV['HOME'], nil
-        end
-        
-        after :each do
-          ENV['HOME'] = @prior_HOME
-        end
-
-        it 'should fail' do
-          lambda { @douchebag.config_path }.should raise_error(RuntimeError)
-        end
-      end
+      it 'should do some other shit (which is really interaction with DoucheConfig)'
     end
 
     describe 'when extracting the nozzle name from a nozzle path' do
