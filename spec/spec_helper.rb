@@ -20,4 +20,4 @@ Spec::Runner.configure do |config|
   config.mock_with :rr
 end
 
-$:.unshift File.join(File.dirname(__FILE__), *%w[.. lib])
+$:.unshift File.expand_path(File.join(File.dirname(__FILE__), '..', 'lib'))
