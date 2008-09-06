@@ -65,6 +65,36 @@ describe 'douche command' do
     end
   end
 
+  describe 'when a configuration file is provided on the command-line' do
+    before :each do
+      @config_file = '/path/to/.douche.yml'
+    end
+    
+    describe 'by --config' do
+      before :each do
+        Object.send(:remove_const, :ARGV)
+        ARGV = ["--config", @config_file]        
+      end
+      
+      it 'should pass the config_file option when creating a Douche instance' do
+        mock(Douche).new(@default_options.merge(:config_file => @config_file)) { @douche }
+        run_command
+      end
+    end
+    
+    describe 'by -c' do
+      before :each do
+        Object.send(:remove_const, :ARGV)
+        ARGV = ["-c", @config_file]        
+      end
+      
+      it 'should pass the config_file option when creating a Douche instance' do
+        mock(Douche).new(@default_options.merge(:config_file => @config_file)) { @douche }
+        run_command        
+      end
+    end
+  end
+
   describe 'when a dry run is specified on the command-line' do
     describe 'by --dry-run' do
       before :each do

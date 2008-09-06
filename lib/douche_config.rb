@@ -19,6 +19,7 @@ class DoucheConfig
   end
   
   def config_path
+    return options[:config_file] if options[:config_file]
     raise "Cannot determine home directory when looking up configuration file path" unless ENV['HOME']
     File.join(ENV['HOME'], '.douche.yml')
   end

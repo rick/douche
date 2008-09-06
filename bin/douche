@@ -7,6 +7,10 @@ op = OptionParser.new do |opts|
     options[:directory]= dir
   end
 
+  opts.on('-c', '--config FILE', "Configuration file (defaults to ~/.douche.yml)") do |config_file|
+    options[:config_file]= config_file
+  end
+
   opts.on('-n', '--dry-run', "Dry run, make no filesystem changes") do |dry|
     options[:dry_run] = dry
   end

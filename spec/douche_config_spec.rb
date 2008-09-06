@@ -139,31 +139,44 @@ describe DoucheConfig do
         lambda { @doucheconfig.config_path(:foo) }.should raise_error(ArgumentError)
       end
       
-      describe "when the user's home directory can be determined" do
+      describe 'when a config_file option is set' do
         before :each do
-          @prior_home, ENV['HOME'] = ENV['HOME'], '/Users/rick'
+          @path = '/path/to/config_file'
+          @doucheconfig = DoucheConfig.new(@options.merge(:config_file => @path))
         end
         
-        after :each do
-          ENV['HOME'] = @prior_HOME
+        it 'should return the path specified in the config_file option' do
+          @doucheconfig.config_path.should == @path
         end
-        
-        it "return the path to .douche.yml in the user's home directory" do
-          @doucheconfig.config_path.should == File.join(ENV['HOME'], '.douche.yml')
-        end        
       end
       
-      describe "when the user's home directory cannot be determined" do
-        before :each do
-          @prior_home, ENV['HOME'] = ENV['HOME'], nil
-        end
+      describe 'when no config_file option is set' do
+        describe "when the user's home directory can be determined" do
+          before :each do
+            @prior_home, ENV['HOME'] = ENV['HOME'], '/Users/rick'
+          end
         
-        after :each do
-          ENV['HOME'] = @prior_HOME
+          after :each do
+            ENV['HOME'] = @prior_HOME
+          end
+        
+          it "return the path to .douche.yml in the user's home directory" do
+            @doucheconfig.config_path.should == File.join(ENV['HOME'], '.douche.yml')
+          end        
         end
+      
+        describe "when the user's home directory cannot be determined" do
+          before :each do
+            @prior_home, ENV['HOME'] = ENV['HOME'], nil
+          end
+        
+          after :each do
+            ENV['HOME'] = @prior_HOME
+          end
 
-        it 'should fail' do
-          lambda { @doucheconfig.config_path }.should raise_error(RuntimeError)
+          it 'should fail' do
+            lambda { @doucheconfig.config_path }.should raise_error(RuntimeError)
+          end
         end
       end
     end
