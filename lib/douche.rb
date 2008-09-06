@@ -1,9 +1,7 @@
-require 'find'
-require 'yaml'
 require 'douchebag'
 
 class Douche
-  attr_reader :directory, :options, :config
+  attr_reader :directory, :options
   
   def initialize(options)
     raise ArgumentError, ":directory is required" unless options[:directory]

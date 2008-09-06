@@ -36,10 +36,6 @@ describe Douche do
     it 'should set the options to the provided options list' do
       Douche.new(@options).options.should == @options
     end
-    
-    it 'should not initialize the configuration' do
-      Douche.new(@options).config.should be_nil
-    end
   end
 
   describe 'once initialized' do
@@ -67,14 +63,6 @@ describe Douche do
       @douche.should_not respond_to(:verbose=)
     end
     
-    it 'should allow retrieving the configuration' do
-      @douche.should respond_to(:config)
-    end
-    
-    it 'should not allow setting the configuration' do
-      @douche.should_not respond_to(:config=)
-    end
-
     describe 'when retrieving the verbosity' do
       it 'should be true if douche was initialized with the option :verbose => true' do
         Douche.new(@options.merge(:verbose => true)).verbose?.should be_true
