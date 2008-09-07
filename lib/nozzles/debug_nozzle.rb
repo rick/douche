@@ -1,9 +1,16 @@
-class TrueNozzle < Nozzle
+class DebugNozzle < Nozzle
   def stank?(file)
-    file =~ /\.txt$/
+    true
   end
 
   def spray(file)
-    puts ":::::: #{file}"
+    STDERR.puts "parameters [#{params.inspect}]"
+    STDERR.puts ":::::: #{file}"
+  end
+
+  private
+  
+  def filename
+    __FILE__
   end
 end
