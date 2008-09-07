@@ -34,8 +34,9 @@ class Nozzle
   end
   
   def douche(file)
+    return unless stank? file
     puts "Nozzle [#{self.class.name}] Processing file [#{file}]..." if verbose?
-    spray file if stank? file
+    spray file
   end
   
   # to be overridden by descendant Nozzles

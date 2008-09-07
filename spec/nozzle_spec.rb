@@ -238,28 +238,6 @@ describe Nozzle do
         lambda { @nozzle.douche }.should raise_error(ArgumentError)
       end
     
-      describe 'if verbose mode is enabled' do
-        before :each do
-          stub(@nozzle).verbose? { true }
-        end
-
-        it 'should display a message about processing the file' do
-          mock(@nozzle).puts(anything)
-          @nozzle.douche('file')
-        end
-      end
-    
-      describe 'if verbose mode is disabled' do
-        before :each do
-          stub(@nozzle).verbose? { false }
-        end
-
-        it 'should not display a message about processing the file' do
-          mock(@nozzle).puts(anything).times(0)
-          @nozzle.douche('file')
-        end
-      end
-    
       it 'should determine if the file needs douching' do
         mock(@nozzle).stank?(:file)
         @nozzle.douche(:file)
@@ -268,6 +246,28 @@ describe Nozzle do
       describe 'when the file needs douching' do
         before :each do
           stub(@nozzle).stank?(:file) { true }
+        end
+
+        describe 'if verbose mode is enabled' do
+          before :each do
+            stub(@nozzle).verbose? { true }
+          end
+
+          it 'should display a message about processing the file' do
+            mock(@nozzle).puts(anything)
+            @nozzle.douche(:file)
+          end
+        end
+
+        describe 'if verbose mode is disabled' do
+          before :each do
+            stub(@nozzle).verbose? { false }
+          end
+
+          it 'should not display a message about processing the file' do
+            mock(@nozzle).puts(anything).times(0)
+            @nozzle.douche(:file)
+          end
         end
 
         it 'should spray the file' do
