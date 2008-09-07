@@ -1,4 +1,5 @@
 require 'douchebag'
+require 'find'
 
 class Douche
   attr_reader :directory, :options
