@@ -149,8 +149,8 @@ describe DoucheConfig do
       end
       
       it 'should convert any array nozzles under a path to a hash of nozzles with nozzle names as keys' do
-        @doucheconfig.normalize({ "/path/to" => [ "foo", "bar"], "/path/from" => { "baz" => { }, "xyzzy" => {} } }).should ==
-        { "/path/to" => { "foo" => {}, "bar" => {} }, "/path/from" => { "baz" => { }, "xyzzy" => {} } }
+        @doucheconfig.normalize({ "/path/to" => [ "foo", "bar"], "/path/from" => [{ "baz" => { } }, { "xyzzy" => {} } ] }).should ==
+        { "/path/to" => [ { "foo" => {} }, { "bar" => {} } ], "/path/from" => [{ "baz" => { } }, { "xyzzy" => {} } ] }
       end
     end
     
@@ -162,7 +162,7 @@ describe DoucheConfig do
       before :each do
         @path = '/path/to/mp3z'
         stub(@doucheconfig).active_paths { [ @path ] }
-        stub(@doucheconfig).config { { @path => { "foo" => {}, "bar" => {} } } }
+        stub(@doucheconfig).config { { @path => [ {"foo" => {} }, { "bar" => {} } ] } }
       end
       
       it 'should work without arguments' do
@@ -203,7 +203,7 @@ describe DoucheConfig do
         @path = '/foo/bar'
         @paths = [ @path ]
         stub(@doucheconfig).active_paths { @paths }
-        stub(@doucheconfig).config { { @path => { @name => { 'baz' => 'xyzzy' } } } }
+        stub(@doucheconfig).config { { @path => [ { @name => { 'baz' => 'xyzzy' } } ] } }
       end
       
       it 'should accept a nozzle name' do
@@ -221,7 +221,7 @@ describe DoucheConfig do
       
       describe 'when there is no matching nozzle in the first active path' do
         it 'should fail' do
-          stub(@doucheconfig).config { { @path => { } } }
+          stub(@doucheconfig).config { { @path => [ ] } }
           lambda { @doucheconfig.nozzle_parameters(@name) }.should raise_error
         end
       end
@@ -239,7 +239,7 @@ describe DoucheConfig do
     
     describe 'when finding the active paths from the config' do
       before :each do
-        @config = { "/foo/bar" => {}, "/bar/baz" => {}, "/baz/xyzzy" => {} }
+        @config = { "/foo/bar" => [], "/bar/baz" => [], "/baz/xyzzy" => [] }
         stub(@doucheconfig).config { @config }
         stub(@doucheconfig).active_path? { false }
       end
