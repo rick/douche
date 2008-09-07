@@ -1,11 +1,12 @@
 class DebugNozzle < Nozzle
   def stank?(file)
-    true
+    return true unless params['pattern']
+    file =~ Regexp.new(params['pattern'])
   end
 
   def spray(file)
-    STDERR.puts "parameters [#{params.inspect}]"
-    STDERR.puts ":::::: #{file}"
+    puts "parameters [#{params.inspect}]" if params.keys.size > 0 and verbose?
+    puts file
   end
 
   private
