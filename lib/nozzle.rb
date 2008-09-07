@@ -1,5 +1,5 @@
 class Nozzle
-  attr_reader :options
+  attr_reader :options, :directory
   
   def self.nozzles
     subclasses = []
@@ -13,6 +13,7 @@ class Nozzle
     @options = options
     @dry_run = options[:dry_run]
     @verbose = options[:verbose]
+    @directory = options[:directory]
   end
   
   def dry_run?

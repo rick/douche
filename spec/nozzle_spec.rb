@@ -56,6 +56,10 @@ describe Nozzle do
         @options = { :foo => 'bar', :baz => 'xyzzy' }
         Nozzle.new(@options).options.should == @options
       end
+      
+      it 'should set the directory option' do
+        Nozzle.new(:directory => 'foo').directory.should == 'foo'
+      end
     end
   end
 
@@ -66,6 +70,14 @@ describe Nozzle do
   
     it 'should not allow setting options' do
       @nozzle.should_not respond_to(:options=)
+    end
+  
+    it 'should allow querying the directory setting' do
+      @nozzle.should respond_to(:directory)
+    end
+  
+    it 'should not allow setting the directory setting' do
+      @nozzle.should_not respond_to(:directory=)
     end
   
     it 'should allow retrieving the dry-run status' do
