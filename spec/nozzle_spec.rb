@@ -148,27 +148,10 @@ describe Nozzle do
         before :each do
           stub(@nozzle).stank?(:file) { true }
         end
-      
-        describe 'if dry-run mode is enabled' do
-          before :each do
-            stub(@nozzle).dry_run? { true }
-          end
-        
-          it 'should not spray the file' do
-            mock(@nozzle).spray(:file).times(0)
-            @nozzle.douche(:file)
-          end
-        end
-      
-        describe 'if dry-run mode is disabled' do
-          before :each do
-            stub(@nozzle).dry_run? { false }
-          end
-        
-          it 'should spray the file' do
-            mock(@nozzle).spray(:file)
-            @nozzle.douche(:file)
-          end
+
+        it 'should spray the file' do
+          mock(@nozzle).spray(:file)
+          @nozzle.douche(:file)
         end
       end
     
