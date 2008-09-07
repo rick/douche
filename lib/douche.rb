@@ -21,11 +21,19 @@ class Douche
   def douche_file(file)
     nozzles.each do |klass|
       puts "Douching file [#{file}] with nozzle [#{klass.name}]..." if verbose?
-      klass.new(options).douche(file) 
+      klass.new(config).douche(file) 
     end
   end
   
   def nozzles
-    @nozzles ||= Douchebag.new(options).nozzles
+    @nozzles ||= douchebag.nozzles
+  end
+  
+  def config
+    douchebag.config
+  end
+  
+  def douchebag
+    @douchebag ||= Douchebag.new(options)
   end
 end

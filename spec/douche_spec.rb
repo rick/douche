@@ -99,6 +99,9 @@ describe Douche do
       before :each do
         @dir = File.expand_path(File.dirname(__FILE__) + '/../file_fixtures/simple')
         @douche = Douche.new(:directory => @dir)
+
+        @config = {}
+        stub(@douche).config { @config }
       
         @nozzle_a = "nozzle a"
         @nozzle_b = "nozzle b"
@@ -126,6 +129,12 @@ describe Douche do
         mock(NozzleA).new(anything) { @nozzle_a }
         mock(NozzleB).new(anything) { @nozzle_b }
         @douche.douche_file(:file)
+      end
+      
+      it 'should pass the configuration to each nozzle' do
+        mock(NozzleA).new(@config) { @nozzle_a }
+        mock(NozzleB).new(@config) { @nozzle_b }
+        @douche.douche_file(:file)        
       end
     
       it 'should ask each nozzle to douche the file' do
@@ -156,12 +165,91 @@ describe Douche do
         end
       end
     end
+
+    it 'should have a means of querying the configuration' do
+      @douche.should respond_to(:config)
+    end
+
+    describe 'when querying the configuration' do
+      before :each do
+        @config = :foo
+        stub(@douche).douchebag { @douchebag }
+        stub(@douchebag).config { @config }
+      end
+      
+      it 'should work without arguments' do
+        lambda { @douche.config }.should_not raise_error(ArgumentError)
+      end
+      
+      it 'should not accept arguments' do
+        lambda { @douche.config(:foo) }.should raise_error(ArgumentError)
+      end
+      
+      it 'should look up the current douchebag' do
+        mock(@douche).douchebag
+        @douche.config
+      end
+
+      it "should return the douchebag's configuration object" do
+        @douche.config.should == @config
+      end
+    end
+    
+    it 'should have a means of querying the current douchebag' do
+      @douche.should respond_to(:douchebag)
+    end
+    
+    describe 'when querying the current douchebag' do
+      it 'should work without arguments' do
+        lambda { @douche.douchebag }.should_not raise_error(ArgumentError)
+      end
+      
+      it 'should not accept arguments' do
+        lambda { @douche.douchebag(:foo) }.should raise_error(ArgumentError)
+      end
+      
+      describe 'the first time' do
+        before :each do
+          @douchebag = Douchebag.new(@options)
+          stub(Douchebag).new(anything) { @douchebag }
+        end
+
+        it 'should instantiate a new Douchebag instance' do
+          mock(Douchebag).new(anything) { @douchebag }
+          @douche.douchebag
+        end
+        
+        it 'should pass the options list to the new Douchebag instance' do
+          mock(Douchebag).new(@options) { @douchebag }
+          @douche.douchebag
+        end
+        
+        it 'should return the new Douchebag instance' do
+          @douche.douchebag.should == @douchebag
+        end
+      end
+      
+      describe 'after the first time' do
+        before :each do
+          @results = @douche.douchebag
+        end
+        
+        it 'should not instantiate a new Douchebag instance' do
+          mock(Douchebag).new(anything).never
+          @douche.douchebag          
+        end
+        
+        it 'should return the same value it returned the first time' do
+          @douche.douchebag.should == @results
+        end
+      end
+    end
   
     describe 'when looking up nozzles' do
       before :each do
         @douche = Douche.new(@options)
         @douchebag = Douchebag.new(@options)
-        stub(Douchebag).new(anything) { @douchebag }
+        stub(@douche).douchebag { @douchebag }
         stub(@douchebag).nozzles { [] }
       end
       
@@ -174,13 +262,8 @@ describe Douche do
       end
       
       describe 'the first time' do
-        it 'should get a new douchebag' do
-          mock(Douchebag).new(anything) { @douchebag }
-          @douche.nozzles
-        end
-      
-        it 'should pass our options to the new douchebag' do
-          mock(Douchebag).new(@options) { @douchebag }
+        it 'should get the current douchebag' do
+          mock(@douche).douchebag { @douchebag }
           @douche.nozzles
         end
       

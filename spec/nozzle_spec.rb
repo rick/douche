@@ -11,7 +11,10 @@ end
 
 describe Nozzle do
   before :each do
-    @nozzle = Nozzle.new({})
+    @config = {}
+    @options = { :foo => 'bar', :baz => 'xyzzy' }
+    stub(@config).options { @options }
+    @nozzle = Nozzle.new(@config)
   end
   
   describe 'as a class' do
@@ -44,21 +47,30 @@ describe Nozzle do
     end
     
     describe 'when initializing' do
-      it 'should accept options' do
+      it 'should accept a DoucheConfig object' do
         lambda { Nozzle.new({}) }.should_not raise_error(ArgumentError)
       end
       
-      it 'should require options' do
+      it 'should require a DoucheConfig object' do
         lambda { Nozzle.new }.should raise_error(ArgumentError)        
       end
       
-      it 'should set the options to the provided options list' do
-        @options = { :foo => 'bar', :baz => 'xyzzy' }
-        Nozzle.new(@options).options.should == @options
+      it 'should save the DoucheConfig object' do
+        Nozzle.new(@config).config.should == @config
+      end
+      
+      it 'should query the DoucheConfig object for options' do
+        mock(@config).options { {} }
+        Nozzle.new(@config)
+      end
+      
+      it 'should set the options to the DoucheConfig options list' do
+        Nozzle.new(@config).options.should == @options
       end
       
       it 'should set the directory option' do
-        Nozzle.new(:directory => 'foo').directory.should == 'foo'
+        @options.merge!(:directory => 'foo')
+        Nozzle.new(@config).directory.should == 'foo'
       end
     end
   end
@@ -79,6 +91,14 @@ describe Nozzle do
     it 'should not allow setting the directory setting' do
       @nozzle.should_not respond_to(:directory=)
     end
+    
+    it 'should allow querying the config object' do
+      @nozzle.should respond_to(:config)
+    end
+    
+    it 'should not allow setting the config object' do
+      @nozzle.should_not respond_to(:config=)
+    end
   
     it 'should allow retrieving the dry-run status' do
       @nozzle.should respond_to(:dry_run?)
@@ -90,11 +110,12 @@ describe Nozzle do
   
     describe 'when retrieving the dry-run status' do
       it 'should be true if nozzle was initialized with the option :dry_run => true' do
-        Nozzle.new(:dry_run => true).dry_run?.should be_true
+        @options.merge!(:dry_run => true)
+        Nozzle.new(@config).dry_run?.should be_true
       end
 
       it 'should be false if nozzle was not initialized with the option :dry_run => true' do
-        Nozzle.new({}).dry_run?.should be_false
+        Nozzle.new(@config).dry_run?.should be_false
       end
     end
   
@@ -108,11 +129,12 @@ describe Nozzle do
   
     describe 'when retrieving the verbosity' do
       it 'should be true if nozzle was initialized with the option :verbose => true' do
-        Nozzle.new(:verbose => true).verbose?.should be_true
+        @options.merge!(:verbose => true)
+        Nozzle.new(@config).verbose?.should be_true
       end
 
       it 'should be false if nozzle was not initialized with the option :verbose => true' do
-        Nozzle.new({}).verbose?.should be_false
+        Nozzle.new(@config).verbose?.should be_false
       end
     end
   

@@ -1,5 +1,5 @@
 class Nozzle
-  attr_reader :options, :directory
+  attr_reader :options, :directory, :config
   
   def self.nozzles
     subclasses = []
@@ -9,8 +9,9 @@ class Nozzle
     subclasses
   end
   
-  def initialize(options)
-    @options = options
+  def initialize(config)
+    @config = config
+    @options = config.options
     @dry_run = options[:dry_run]
     @verbose = options[:verbose]
     @directory = options[:directory]
