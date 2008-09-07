@@ -192,6 +192,46 @@ describe DoucheConfig do
         @doucheconfig.nozzles.sort.should == [ "bar", "foo" ]
       end
     end
+
+    it 'should allow fetching parameters for a nozzle' do
+      @doucheconfig.should respond_to(:nozzle_parameters)
+    end
+    
+    describe 'when fetching parameters for a nozzle' do
+      before :each do
+        @name = 'shizzle'
+        @path = '/foo/bar'
+        @paths = [ @path ]
+        stub(@doucheconfig).active_paths { @paths }
+        stub(@doucheconfig).config { { @path => { @name => { 'baz' => 'xyzzy' } } } }
+      end
+      
+      it 'should accept a nozzle name' do
+        lambda { @doucheconfig.nozzle_parameters(@name) }.should_not raise_error(ArgumentError)
+      end
+      
+      it 'should require a nozzle name' do
+        lambda { @doucheconfig.nozzle_parameters }.should raise_error(ArgumentError)
+      end
+      
+      it 'should fetch the active paths from the configuration' do
+        mock(@doucheconfig).active_paths { @paths }
+        @doucheconfig.nozzle_parameters(@name)
+      end
+      
+      describe 'when there is no matching nozzle in the first active path' do
+        it 'should fail' do
+          stub(@doucheconfig).config { { @path => { } } }
+          lambda { @doucheconfig.nozzle_parameters(@name) }.should raise_error
+        end
+      end
+      
+      describe 'when there is a matching nozzle in the first active path' do
+        it 'should return the parameters for the matching nozzle' do
+          @doucheconfig.nozzle_parameters(@name).should == { 'baz' => 'xyzzy' }
+        end
+      end
+    end
     
     it 'should allow finding the active paths from the config' do
       @doucheconfig.should respond_to(:active_paths)

@@ -36,6 +36,12 @@ class DoucheConfig
     raise "Configuration file [#{config_path}] declares overlapping paths!" if paths.size > 1
     config[paths.first].keys
   end
+  
+  def nozzle_parameters(name)
+    path = active_paths.first
+    raise "Could not find nozzle [#{name}] in configuration file [#{config_path}]" unless config[path][name]
+    config[path][name]
+  end
 
   def active_paths
     config.keys.select {|path| active_path? path }
