@@ -63,6 +63,7 @@ describe DoucheConfig do
       before :each do
         @config_path = '/path/to/config'
         stub(@doucheconfig).config_path { @config_path }
+        stub(@doucheconfig).normalize(anything) { { } }
         stub(File).read(anything) { YAML.dump({}) }        
       end
       
@@ -93,9 +94,18 @@ describe DoucheConfig do
         end
 
         describe 'when the configuration file can be read' do
-          it 'should return an un-YAMLized version of the configuration data' do
-            stub(File).read(@config_path) { YAML.dump({}) }
-            @doucheconfig.config.should == {}
+          before :each do
+            stub(File).read(@config_path) { YAML.dump({}) }            
+          end
+          
+          it 'should normalize an un-YAMLized version of the configuration data' do
+            mock(@doucheconfig).normalize({})
+            @doucheconfig.config
+          end
+          
+          it 'should return the normalized data' do
+            stub(@doucheconfig).normalize(anything) { :foo }
+            @doucheconfig.config.should == :foo
           end
         end
       end
@@ -118,6 +128,29 @@ describe DoucheConfig do
         it 'should return the same configuration data returned the first time' do
           @doucheconfig.config.should == @results          
         end
+      end
+    end
+    
+    it 'should allow normalizing the unYAML-ized configuration data' do
+      @doucheconfig.should respond_to(:normalize)
+    end
+    
+    describe 'normalizing unYAML-ized configuration data' do
+      it 'should accept the unYAML-ized configuration data' do
+        lambda { @doucheconfig.normalize(:foo) }.should_not raise_error(ArgumentError)
+      end
+      
+      it 'should require the unYAML-ized configuration data' do
+        lambda { @doucheconfig.normalize }.should raise_error(ArgumentError)
+      end
+      
+      it 'should fail if the data is not a hash' do
+        lambda { @doucheconfig.normalize([]) }.should raise_error
+      end
+      
+      it 'should convert any array nozzles under a path to a hash of nozzles with nozzle names as keys' do
+        @doucheconfig.normalize({ "/path/to" => [ "foo", "bar"], "/path/from" => { "baz" => { }, "xyzzy" => {} } }).should ==
+        { "/path/to" => { "foo" => {}, "bar" => {} }, "/path/from" => { "baz" => { }, "xyzzy" => {} } }
       end
     end
     
@@ -145,9 +178,9 @@ describe DoucheConfig do
         @doucheconfig.nozzles
       end
       
-      it 'should fail if there is no active path' do
+      it 'should return an empty list if there is no active path' do
         stub(@doucheconfig).active_paths { [] }
-        lambda { @doucheconfig.nozzles }.should raise_error(RuntimeError)
+        @doucheconfig.nozzles.should == []
       end
       
       it 'should fail if there is more than one active path' do

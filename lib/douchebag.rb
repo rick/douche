@@ -19,7 +19,7 @@ class Douchebag
   def nozzles
     return @nozzles if @nozzles
     all_nozzles = config.nozzles
-    raise "No nozzles defined in configuration file [#{config.config_path}]!" if all_nozzles.empty?
+    return [] if all_nozzles.empty?
     all_nozzles.each {|nozzle| require nozzle_file(nozzle) }
     @nozzles = Nozzle.nozzles
   end

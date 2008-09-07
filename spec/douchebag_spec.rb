@@ -144,8 +144,8 @@ describe Douchebag do
             stub(@doucheconfig).config_path { '/path/to/config.yml' }
           end
           
-          it 'should fail' do
-            lambda { @douchebag.nozzles }.should raise_error
+          it 'should return the empty list' do
+            @douchebag.nozzles.should == []
           end
         end
 

@@ -15,7 +15,7 @@ class DoucheConfig
   end
   
   def config
-    @config ||= YAML.load(File.read(config_path))
+    @config ||= normalize(YAML.load(File.read(config_path)))
   end
 
   def config_path
@@ -23,10 +23,16 @@ class DoucheConfig
     raise "Cannot determine home directory when looking up configuration file path" unless ENV['HOME']
     File.join(ENV['HOME'], '.douche.yml')
   end
-
+  
+  def normalize(data)
+    new_data = {}
+    data.each_pair {|path, nozzles| new_data[path] = hashify(nozzles) }
+    new_data
+  end
+  
   def nozzles
     paths = active_paths
-    raise "Configuration file [#{config_path}] contains no paths!" if paths.empty?
+    return [] if paths.empty?
     raise "Configuration file [#{config_path}] declares overlapping paths!" if paths.size > 1
     config[paths.first].keys
   end
@@ -48,5 +54,15 @@ class DoucheConfig
       containee_paths.shift      
     end
     container_paths.empty?
+  end
+  
+  private
+  
+  def hashify(thing)
+    return thing if thing.respond_to? :keys
+    thing.inject({}) do |h, key|
+      h[key] = {}
+      h
+    end
   end
 end
