@@ -49,6 +49,7 @@ class Nozzle
   
   private
   
+  # this is only here to facilitate testing, as Ruby otherwise gives no way to control the value of __FILE__.
   def filename
     __FILE__
   end
