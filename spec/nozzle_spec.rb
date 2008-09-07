@@ -99,6 +99,93 @@ describe Nozzle do
     it 'should not allow setting the config object' do
       @nozzle.should_not respond_to(:config=)
     end
+    
+    it 'should allow querying its parameters' do
+      @nozzle.should respond_to(:params)
+    end
+    
+    it 'should not allow setting its parameters' do
+      @nozzle.should_not respond_to(:params=)
+    end
+    
+    describe 'when querying its parameters' do
+      before :each do
+        stub(@nozzle).config { @config }
+        stub(@config).nozzle_parameters { {} }
+      end
+      
+      it 'should work without arguments' do
+        lambda { @nozzle.params }.should_not raise_error(ArgumentError)
+      end
+      
+      it 'should not allow arguments' do
+        lambda { @nozzle.params(:foo) }.should raise_error(ArgumentError)
+      end
+      
+      describe 'the first time' do
+        before :each do
+          stub(@nozzle).name { 'shizzle' }
+        end
+        
+        it 'should look up its own name' do
+          mock(@nozzle).name
+          @nozzle.params
+        end
+      
+        it 'should ask the config object for its parameters, using its name' do
+          mock(@nozzle.config).nozzle_parameters('shizzle')
+          @nozzle.params
+        end
+        
+        it 'should return the parameters from the config object' do
+          @params = { :foo => :bar }
+          mock(@nozzle.config).nozzle_parameters('shizzle') { @params }
+          @nozzle.params.should == @params
+        end
+      end
+      
+      describe 'after the first time' do
+        before :each do
+          @results = @nozzle.params
+        end
+        
+        it 'should not look up its name' do
+          mock(@nozzle).name.never
+          @nozzle.params
+        end
+        
+        it 'should not ask the config object for parameters' do
+          mock(@config).nozzle_parameters(anything).never
+        end
+        
+        it 'should return the same parameters returned the first time' do
+          @nozzle.params.should == @results
+        end
+      end
+    end
+    
+    it 'should allow looking up the name' do
+      @nozzle.should respond_to(:name)
+    end
+    
+    it 'should not allow setting the name' do
+      @nozzle.should_not respond_to(:name=)
+    end
+    
+    describe 'when looking up the name' do
+      it 'should work without arguments' do
+        lambda { @nozzle.name }.should_not raise_error(ArgumentError)
+      end
+      
+      it 'should not accept arguments' do
+        lambda { @nozzle.name(:foo) }.should raise_error(ArgumentError)
+      end
+      
+      it "should return the nozzle name, extracted from the nozzle's filename" do
+        stub(@nozzle).filename { File.join(File.dirname(__FILE__), '/shizzle_nozzle.rb') }
+        @nozzle.name.should == 'shizzle'
+      end
+    end
   
     it 'should allow retrieving the dry-run status' do
       @nozzle.should respond_to(:dry_run?)

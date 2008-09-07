@@ -17,6 +17,14 @@ class Nozzle
     @directory = options[:directory]
   end
   
+  def params
+    @params ||= config.nozzle_parameters(name)
+  end
+  
+  def name
+    File.basename(filename).sub(%r{^(.*)_nozzle\.rb$}, '\1')
+  end
+  
   def dry_run?
     !! @dry_run
   end
@@ -37,5 +45,11 @@ class Nozzle
   
   # to be overridden by descendant Nozzles
   def spray(file)
+  end
+  
+  private
+  
+  def filename
+    __FILE__
   end
 end
