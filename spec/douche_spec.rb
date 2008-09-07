@@ -150,7 +150,7 @@ describe Douche do
             stub(@douche).verbose? { true }
           end
 
-          it 'should output a nozzle notification message' do
+          it 'should output a nozzle notification message for each file' do
             mock(@douche).puts(anything).times(2)
             @douche.douche_file(:file)      
           end
@@ -161,7 +161,7 @@ describe Douche do
             stub(@douche).verbose? { false }
           end
 
-          it 'should not output a nozzle notification message' do
+          it 'should not output any nozzle notification messages' do
             mock(@douche).puts(anything).times(0)
             @douche.douche_file(:file)
           end
@@ -204,7 +204,7 @@ describe Douche do
             stub(@douche).verbose? { true }
           end
 
-          it 'should output a nozzle notification message' do
+          it 'should output a nozzle notification message for pre-failure files' do
             mock(@douche).puts(anything).times(1)
             @douche.douche_file(:file)      
           end
@@ -215,7 +215,7 @@ describe Douche do
             stub(@douche).verbose? { false }
           end
 
-          it 'should not output a nozzle notification message' do
+          it 'should not output any nozzle notification messages' do
             mock(@douche).puts(anything).times(0)
             @douche.douche_file(:file)
           end
