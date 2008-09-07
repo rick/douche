@@ -252,23 +252,45 @@ describe DoucheConfig do
         lambda { @doucheconfig.active_paths(:foo) }.should raise_error(ArgumentError)        
       end
       
-      it 'should return the empty list if no paths are found' do
-        stub(@doucheconfig).config { {} }
-        @doucheconfig.active_paths.should == []
-      end
+      describe 'the first time' do
+        it 'should return the empty list if no paths are found' do
+          stub(@doucheconfig).config { {} }
+          @doucheconfig.active_paths.should == []
+        end
       
-      it 'should check if each path in the config is active' do
-        @config.keys.each do |path|
-          mock(@doucheconfig).active_path?(path) { false }
+        it 'should check if each path in the config is active' do
+          @config.keys.each do |path|
+            mock(@doucheconfig).active_path?(path) { false }
+          end
           @doucheconfig.active_paths
+        end
+      
+        it 'return the paths which are found to be active' do
+          stub(@doucheconfig).active_path?("/foo/bar") { true }
+          stub(@doucheconfig).active_path?("/bar/baz") { false }
+          stub(@doucheconfig).active_path?("/baz/xyzzy") { true }
+          @doucheconfig.active_paths.sort.should == ["/baz/xyzzy", "/foo/bar"]
         end
       end
       
-      it 'return the paths which are found to be active' do
-        stub(@doucheconfig).active_path?("/foo/bar") { true }
-        stub(@doucheconfig).active_path?("/bar/baz") { false }
-        stub(@doucheconfig).active_path?("/baz/xyzzy") { true }
-        @doucheconfig.active_paths.sort.should == ["/baz/xyzzy", "/foo/bar"]
+      describe 'after the first time' do
+        before :each do
+          @results = @doucheconfig.active_paths
+        end
+        
+        it 'should not look up paths' do
+          mock(@config).keys.never
+          @doucheconfig.active_paths
+        end
+        
+        it 'should not check paths for activity' do
+          mock(@doucheconfig).active_path?(anything).never          
+          @doucheconfig.active_paths
+        end
+        
+        it 'should return the same paths as were returned the first time' do
+          @doucheconfig.active_paths.should == @results
+        end
       end
     end
     

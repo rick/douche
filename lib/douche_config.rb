@@ -44,7 +44,7 @@ class DoucheConfig
   end
 
   def active_paths
-    config.keys.select {|path| active_path? path }
+    @active_paths ||= config.keys.select {|path| active_path? path }
   end
   
   def active_path?(path)
