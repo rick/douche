@@ -22,7 +22,7 @@ class Douche
   def douche_file(file)
     nozzles.each do |klass|
       puts "Douching file [#{file}] with nozzle [#{klass.name}]..." if verbose?
-      klass.new(config).douche(file) 
+      break unless klass.new(config).douche(file) 
     end
   end
   

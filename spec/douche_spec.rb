@@ -99,17 +99,8 @@ describe Douche do
       before :each do
         @dir = File.expand_path(File.dirname(__FILE__) + '/../file_fixtures/simple')
         @douche = Douche.new(:directory => @dir)
-
         @config = {}
         stub(@douche).config { @config }
-      
-        @nozzle_a = "nozzle a"
-        @nozzle_b = "nozzle b"
-        stub(NozzleA).new(anything) { @nozzle_a }
-        stub(NozzleB).new(anything) { @nozzle_b }
-        stub(@nozzle_a).douche(anything)
-        stub(@nozzle_b).douche(anything)
-        stub(@douche).nozzles { [ NozzleA, NozzleB ] }
       end
     
       it 'should accept a file path' do
@@ -119,49 +110,115 @@ describe Douche do
       it 'should require a file path' do
         lambda { @douche.douche_file }.should raise_error(ArgumentError)
       end
-    
+
       it 'should fetch the list of nozzles' do
         mock(@douche).nozzles { [] }
         @douche.douche_file(:file)
       end
-    
-      it 'should create an instance of each nozzle' do
-        mock(NozzleA).new(anything) { @nozzle_a }
-        mock(NozzleB).new(anything) { @nozzle_b }
-        @douche.douche_file(:file)
-      end
-      
-      it 'should pass the configuration to each nozzle' do
-        mock(NozzleA).new(@config) { @nozzle_a }
-        mock(NozzleB).new(@config) { @nozzle_b }
-        @douche.douche_file(:file)        
-      end
-    
-      it 'should ask each nozzle to douche the file' do
-        mock(@nozzle_a).douche(:file)
-        mock(@nozzle_b).douche(:file)
-        @douche.douche_file(:file)      
-      end
 
-      describe 'and the verbose flag is set' do
+      describe 'when douching succeeds on all nozzles' do
         before :each do
-          stub(@douche).verbose? { true }
+          @nozzle_a = "nozzle a"
+          @nozzle_b = "nozzle b"
+          stub(NozzleA).new(anything) { @nozzle_a }
+          stub(NozzleB).new(anything) { @nozzle_b }
+          stub(@nozzle_a).douche(anything) { true }
+          stub(@nozzle_b).douche(anything) { true }
+          stub(@douche).nozzles { [ NozzleA, NozzleB ] }          
+        end
+              
+        it 'should create an instance of each nozzle' do
+          mock(NozzleA).new(anything) { @nozzle_a }
+          mock(NozzleB).new(anything) { @nozzle_b }
+          @douche.douche_file(:file)
         end
       
-        it 'should output a nozzle notification message' do
-          mock(@douche).puts(anything).times(2)
+        it 'should pass the configuration to each nozzle' do
+          mock(NozzleA).new(@config) { @nozzle_a }
+          mock(NozzleB).new(@config) { @nozzle_b }
+          @douche.douche_file(:file)        
+        end
+    
+        it 'should ask each nozzle to douche the file' do
+          mock(@nozzle_a).douche(:file) { true }
+          mock(@nozzle_b).douche(:file) { true }
           @douche.douche_file(:file)      
         end
+        
+        describe 'and the verbose flag is set' do
+          before :each do
+            stub(@douche).verbose? { true }
+          end
+
+          it 'should output a nozzle notification message' do
+            mock(@douche).puts(anything).times(2)
+            @douche.douche_file(:file)      
+          end
+        end
+
+        describe 'and the verbose flag is not set' do
+          before :each do
+            stub(@douche).verbose? { false }
+          end
+
+          it 'should not output a nozzle notification message' do
+            mock(@douche).puts(anything).times(0)
+            @douche.douche_file(:file)
+          end
+        end
       end
-    
-      describe 'and the verbose flag is not set' do
+
+      describe 'when some nozzle fails at douching the file' do
         before :each do
-          stub(@douche).verbose? { false }
+          @nozzle_a = "nozzle a"
+          @nozzle_b = "nozzle b"
+          stub(NozzleA).new(anything) { @nozzle_a }
+          stub(NozzleB).new(anything) { @nozzle_b }
+          stub(@nozzle_a).douche(anything) { false }
+          stub(@douche).nozzles { [ NozzleA, NozzleB ] }          
+        end
+
+        it 'should create an instance of each pre-failure nozzle' do
+          mock(NozzleA).new(anything) { @nozzle_a }
+          @douche.douche_file(:file)
         end
       
-        it 'should not output a nozzle notification message' do
-          mock(@douche).puts(anything).times(0)
+        it 'should pass the configuration to each pre-failure nozzle' do
+          mock(NozzleA).new(@config) { @nozzle_a }
+          @douche.douche_file(:file)        
+        end
+    
+        it 'should ask each pre-failure nozzle to douche the file' do
+          mock(@nozzle_a).douche(:file) { false }
+          @douche.douche_file(:file)      
+        end
+        
+        it 'should not create instances of any nozzles after a failure' do
+          mock(@nozzle_b).douche(anything).never
+          mock(NozzleB).new(anything).never
           @douche.douche_file(:file)
+        end
+        
+        describe 'and the verbose flag is set' do
+          before :each do
+            stub(@douche).verbose? { true }
+          end
+
+          it 'should output a nozzle notification message' do
+            mock(@douche).puts(anything).times(1)
+            @douche.douche_file(:file)      
+          end
+        end
+
+        describe 'and the verbose flag is not set' do
+          before :each do
+            stub(@douche).verbose? { false }
+          end
+
+          it 'should not output a nozzle notification message' do
+            mock(@douche).puts(anything).times(0)
+            @douche.douche_file(:file)
+          end
         end
       end
     end
