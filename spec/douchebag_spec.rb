@@ -113,10 +113,15 @@ describe Douchebag do
   
     describe 'when looking up nozzles' do
       before :each do
-        @dir = File.expand_path(File.dirname(__FILE__) + '/../file_fixtures/simple')
+        @dir = '/path/to/someplace'
         @douchebag = Douchebag.new(:directory => @dir)
-        stub(Nozzle).nozzles { [] }
-        stub(@douchebag).applicable?(anything) { false }
+        
+        @doucheconfig = {}
+        stub(@doucheconfig).nozzles { [ 1, 2, 3 ] }
+        stub(@douchebag).config { @doucheconfig }
+        
+        stub(@douchebag).nozzle_file(anything) { "/path/to/nozzle.rb" }
+        stub(@douchebag).require(anything) { true }
       end
     
       it 'should accept no arguments' do
@@ -128,51 +133,60 @@ describe Douchebag do
       end
     
       describe 'the first time' do
-        it 'should look up the nozzles path' do
-          mock(@douchebag).nozzle_path { '/path/to/nozzles' }
-          stub(Find).find('/path/to/nozzles') { [] }
-          @douchebag.nozzles
-        end
-    
-        it 'should find all nozzles in the nozzles path' do
-          stub(@douchebag).nozzle_path { '/path/to/nozzles' }
-          mock(Find).find('/path/to/nozzles') { [] }
+        it 'should get a list of nozzles from the doucheconfig' do
+          mock(@doucheconfig).nozzles { [ 1, 2, 3 ] }
           @douchebag.nozzles
         end
         
-        it 'should check if each file is an applicable nozzle file' do
-          stub(@douchebag).nozzle_path { @dir }
-          Find.find(@dir) {|path| mock(@douchebag).applicable?(path) { false } }
-          @douchebag.nozzles
+        describe 'if no nozzles are found' do
+          before :each do
+            stub(@doucheconfig).nozzles { [] }
+            stub(@doucheconfig).config_path { '/path/to/config.yml' }
+          end
+          
+          it 'should fail' do
+            lambda { @douchebag.nozzles }.should raise_error
+          end
         end
-        
-        describe 'when a file is an applicable nozzle' do
-          it 'should instantiate the nozzle object' do
-            @path = File.expand_path(File.dirname(__FILE__) + '/../file_fixtures/nozzles/')
-            stub(@douchebag).nozzle_path { @dir }
-            Find.find(@dir) do |path| 
-              stub(@douchebag).applicable?(path) { true }
-              mock(@douchebag).require path 
+
+        describe 'if nozzles are found' do
+          before :each do
+            @nozzles = [ 'foo', 'bar', 'baz' ]
+            stub(@doucheconfig).nozzles { @nozzles }
+          end
+          
+          it 'should look up the filename for each nozzle' do
+            @nozzles.each do |nozzle|
+              mock(@douchebag).nozzle_file(nozzle) { "/path/to/#{nozzle}_nozzle.rb" }
             end
             @douchebag.nozzles
           end
 
-          describe 'when a file is not an applicable nozzle' do
-            it 'should not instantiate the nozzle object' do
-              @path = File.expand_path(File.dirname(__FILE__) + '/../file_fixtures/nozzles/')
-              stub(@douchebag).nozzle_path { @dir }
-              Find.find(@dir) do |path| 
-                stub(@douchebag).applicable?(path) { false }
-                mock(@douchebag).require(path).never
-              end
-              @douchebag.nozzles
+          it 'should instantiate each nozzle object from the computed nozzle file' do
+            @nozzles.each do |nozzle|
+              stub(@douchebag).nozzle_file(nozzle) { "/path/to/#{nozzle}_nozzle.rb" }
+              mock(@douchebag).require("/path/to/#{nozzle}_nozzle.rb")
             end
+            @douchebag.nozzles
           end
-        end
-      
-        it 'should return the final list of nozzles' do
-          stub(Nozzle).nozzles { [ 1, 2, 3 ] }
-          @douchebag.nozzles.should == [ 1, 2, 3 ]
+
+          it 'should fail if the nozzle cannot be instantiated from the computed nozzle file' do
+            @nozzles.each do |nozzle|
+              stub(@douchebag).nozzle_file(nozzle) { "/path/to/#{nozzle}_nozzle.rb" }
+              stub(@douchebag).require("/path/to/#{nozzle}_nozzle.rb") { raise LoadError }
+            end
+            lambda { @douchebag.nozzles }.should raise_error
+          end
+          
+          it 'should get the list of actual instantiated nozzle instances' do
+            mock(Nozzle).nozzles
+            @douchebag.nozzles
+          end
+
+          it 'should return the list of instantiated nozzle instances' do
+            mock(Nozzle).nozzles { [1, 2, 3] }
+            @douchebag.nozzles.should == [1, 2, 3]
+          end          
         end
       end
     
@@ -180,23 +194,28 @@ describe Douchebag do
         before :each do
           @path = File.expand_path(File.dirname(__FILE__) + '/../file_fixtures/nozzles/')
           stub(@douchebag).nozzle_path { @path }
+          @douchebag.nozzles
         end
       
         it 'should not look up the nozzles path' do
           @douchebag.nozzles
-          mock(@douchebag).nozzle_path.times(0)
+          mock(@douchebag).nozzle_path.never
           @douchebag.nozzles
         end
-      
-        it 'should not find nozzles' do
-          @douchebag.nozzles
-          mock(Find).find.times(0)
+        
+        it 'should not get a list of nozzles from the doucheconfig' do
+          mock(@doucheconfig).nozzles.never
+          @douchebag.nozzles          
+        end
+        
+        it 'should not look up nozzle file names' do
+          mock(@douchebag).nozzle_file(anything).never
           @douchebag.nozzles
         end
       
         it 'should not instantiate nozzles' do
           @douchebag.nozzles
-          mock(@douchebag).require.times(0)
+          mock(@douchebag).require.never
           @douchebag.nozzles
         end
       
@@ -204,6 +223,26 @@ describe Douchebag do
           result = @douchebag.nozzles
           @douchebag.nozzles.should == result
         end
+      end
+    end
+  
+    describe 'when looking up the filename from a nozzle name' do
+      it 'should accept a nozzle name' do
+        lambda { @douchebag.nozzle_file('shizzle') }.should_not raise_error(ArgumentError)
+      end
+      
+      it 'should require a nozzle name' do
+        lambda { @douchebag.nozzle_file }.should raise_error(ArgumentError)        
+      end
+      
+      it 'should look up the nozzles path' do
+        mock(@douchebag).nozzle_path { '/path/to/nozzles' }
+        @douchebag.nozzle_file('shizzle')
+      end
+      
+      it 'should return the complete path to the nozzle file' do
+        stub(@douchebag).nozzle_path { '/path/to/nozzles' }
+        @douchebag.nozzle_file('shizzle').should == '/path/to/nozzles/shizzle_nozzle.rb'
       end
     end
   
@@ -219,158 +258,6 @@ describe Douchebag do
       it 'should return the path for nozzles' do
         @douchebag.nozzle_path.should == File.expand_path(File.dirname(__FILE__) + '/../lib/nozzles/')
       end
-    end
-    
-    describe 'when determining if a nozzle is applicable' do
-      before :each do
-        stub(DoucheConfig).new(@options) { {} }
-        stub(@douchebag).nozzle_name { 'nozzle' }
-        stub(@douchebag).active?(anything) { true }
-        @path = '/path/to/nozzle_nozzle.rb'
-      end
-      
-      it 'should accept a nozzle path' do
-        lambda { @douchebag.applicable?(@path) }.should_not raise_error(ArgumentError)
-      end
-      
-      it 'should require a nozzle path' do
-        lambda { @douchebag.applicable? }.should raise_error(ArgumentError)
-      end
-      
-      describe 'when called the first time' do
-        it 'should extract the nozzle name from the nozzle path' do
-          mock(@douchebag).nozzle_name(@path) { 'nozzle' }
-          @douchebag.applicable?(@path)
-        end
-        
-        describe 'if the extracted nozzle name is false' do
-          before :each do
-            stub(@douchebag).nozzle_name(anything) { false }
-          end
-          
-          it 'should return false' do
-            @douchebag.applicable?(@path).should be_false
-          end
-          
-          it 'should not determine if the named nozzle is active for our directory' do
-            mock(@douchebag).active?(anything).never
-            @douchebag.applicable?(@path).should be_false
-          end
-        end
-
-        describe 'if the extracted nozzle name is set' do
-          before :each do
-            @name = 'shizzle'
-            stub(@douchebag).nozzle_name(anything) { @name }
-          end
-          
-          it 'should determine if the named nozzle is active for our directory' do
-            mock(@douchebag).active?('shizzle') { false }
-            @douchebag.applicable?(@path).should be_false
-          end
-
-          describe 'and the nozzle is active for our directory' do
-            before :each do
-              mock(@douchebag).active?(anything) { true }
-            end
-            
-            it 'should consider the nozzle applicable' do
-              @douchebag.applicable?(@path).should be_true
-            end
-          end
-
-          describe 'and the nozzle is not active for our directory' do
-            before :each do
-              mock(@douchebag).active?(anything) { false }
-            end
-            
-            it 'should consider the nozzle inapplicable' do
-              @douchebag.applicable?(@path).should be_false              
-            end
-          end
-        end
-      end
-      
-      describe 'when called after the first time' do
-        before :each do
-          @douchebag.applicable?(@path)
-        end
-        
-        it 'should not pull in the configuration options' do
-          mock(@douchebag).load_configuration.never
-          @douchebag.applicable?(@path)
-        end
-      end
-    end
-    
-    describe 'when determining whether a Nozzle is active' do
-      before :each do
-        @name = 'shizzle'
-        @doucheconfig = {}
-        stub(@doucheconfig).nozzle_is_active?(anything) { true }
-        stub(@douchebag).config { @doucheconfig }
-      end
-      
-      it 'should accept a nozzle name' do
-        lambda { @douchebag.active?(@name) }.should_not raise_error(ArgumentError)
-      end
-
-      it 'should require a nozzle name' do
-        lambda { @douchebag.active? }.should raise_error(ArgumentError)
-      end
-      
-      it 'should ask the config if the named nozzle is active' do
-        mock(@doucheconfig).nozzle_is_active?(@name) { true }
-        @douchebag.active?(@name)
-      end
-
-      describe 'and the config says the nozzle is inactive' do
-        it 'should return false' do
-          stub(@doucheconfig).nozzle_is_active?(anything) { false }
-          @douchebag.active?(@name).should be_false          
-        end
-      end
-
-      describe 'and the config says the nozzle is active' do
-        it 'should return true' do
-          stub(@doucheconfig).nozzle_is_active?(anything) { true }
-          @douchebag.active?(@name).should be_true          
-        end
-      end
-    end
-
-    describe 'when extracting the nozzle name from a nozzle path' do
-      it 'should accept a nozzle path' do
-        lambda { @douchebag.nozzle_name(:foo) }.should_not raise_error(ArgumentError)
-      end
-      
-      it 'should require a nozzle path' do
-        lambda { @douchebag.nozzle_name }.should raise_error(ArgumentError)        
-      end
-      
-      describe 'when the nozzle path does not end in _nozzle.rb' do 
-        before :each do
-          @path = '/path/to/shizzle_spizzle.rb'
-        end
-        
-        it 'should return false' do
-          @douchebag.nozzle_name('/foo/bar/baz.mp3').should be_false
-          @douchebag.nozzle_name('/foo/bar/baz.rb').should be_false
-          @douchebag.nozzle_name('baz_douche.rb').should be_false
-          @douchebag.nozzle_name('_nozzle:rb').should be_false
-          @douchebag.nozzle_name('_nozzle.rby').should be_false
-        end
-      end
-      
-      describe 'when the nozzle path ends in _nozzle.rb' do
-        before :each do
-          @path = '/path/to/shizzle_nozzle.rb'
-        end
-        
-        it 'should return the nozzle path stripped of any path components and _nozzle.rb suffix' do
-          @douchebag.nozzle_name(@path).should == 'shizzle'
-        end
-      end      
     end
   end
 end

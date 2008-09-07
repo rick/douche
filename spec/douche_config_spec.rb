@@ -5,7 +5,8 @@ require 'douche_config'
 
 describe DoucheConfig do
   before :each do
-    @options = { :directory => '/tmp/'}
+    @dir = '/tmp'
+    @options = { :directory => @dir }
     @doucheconfig = DoucheConfig.new(@options)
   end
 
@@ -46,22 +47,6 @@ describe DoucheConfig do
     
     it 'should not allow setting the configuration' do
       @doucheconfig.should_not respond_to(:config=)
-    end
-
-    it 'should allow determining if a named nozzle is active' do
-      @doucheconfig.should respond_to(:nozzle_is_active?)
-    end
-    
-    describe "when determining if a named nozzle is active" do
-      it 'should accept a nozzle name' do
-        lambda { @doucheconfig.nozzle_is_active?('shizzle') }.should_not raise_error(ArgumentError)
-      end
-      
-      it 'should require a nozzle name' do
-        lambda { @doucheconfig.nozzle_is_active? }.should raise_error(ArgumentError)
-      end
-      
-      it 'should do something more (see spike)'
     end
 
     describe 'when retrieving the verbosity' do
@@ -133,6 +118,159 @@ describe DoucheConfig do
         it 'should return the same configuration data returned the first time' do
           @doucheconfig.config.should == @results          
         end
+      end
+    end
+    
+    it 'should allow fetching a series of active nozzle names' do
+      @doucheconfig.should respond_to(:nozzles)
+    end
+    
+    describe 'when fetching a series of active nozzles names' do
+      before :each do
+        @path = '/path/to/mp3z'
+        stub(@doucheconfig).active_paths { [ @path ] }
+        stub(@doucheconfig).config { { @path => { "foo" => {}, "bar" => {} } } }
+      end
+      
+      it 'should work without arguments' do
+        lambda { @doucheconfig.nozzles }.should_not raise_error(ArgumentError)
+      end
+      
+      it 'should not allow arguments' do
+        lambda { @doucheconfig.nozzles(:foo) }.should raise_error(ArgumentError)        
+      end
+      
+      it 'should retrieve the active paths from the config' do
+        mock(@doucheconfig).active_paths { [ @path ] }
+        @doucheconfig.nozzles
+      end
+      
+      it 'should fail if there is no active path' do
+        stub(@doucheconfig).active_paths { [] }
+        lambda { @doucheconfig.nozzles }.should raise_error(RuntimeError)
+      end
+      
+      it 'should fail if there is more than one active path' do
+        stub(@doucheconfig).active_paths { [ @path, @path.succ ] }
+        lambda { @doucheconfig.nozzles }.should raise_error(RuntimeError)        
+      end
+      
+      it 'should return the list of nozzles for the active path' do
+        @doucheconfig.nozzles.sort.should == [ "bar", "foo" ]
+      end
+    end
+    
+    it 'should allow finding the active paths from the config' do
+      @doucheconfig.should respond_to(:active_paths)
+    end
+    
+    describe 'when finding the active paths from the config' do
+      before :each do
+        @config = { "/foo/bar" => {}, "/bar/baz" => {}, "/baz/xyzzy" => {} }
+        stub(@doucheconfig).config { @config }
+        stub(@doucheconfig).active_path? { false }
+      end
+      
+      it 'should work without arguments' do
+        lambda { @doucheconfig.active_paths }.should_not raise_error(ArgumentError)
+      end
+      
+      it 'should not accept an argument' do
+        lambda { @doucheconfig.active_paths(:foo) }.should raise_error(ArgumentError)        
+      end
+      
+      it 'should return the empty list if no paths are found' do
+        stub(@doucheconfig).config { {} }
+        @doucheconfig.active_paths.should == []
+      end
+      
+      it 'should check if each path in the config is active' do
+        @config.keys.each do |path|
+          mock(@doucheconfig).active_path?(path) { false }
+          @doucheconfig.active_paths
+        end
+      end
+      
+      it 'return the paths which are found to be active' do
+        stub(@doucheconfig).active_path?("/foo/bar") { true }
+        stub(@doucheconfig).active_path?("/bar/baz") { false }
+        stub(@doucheconfig).active_path?("/baz/xyzzy") { true }
+        @doucheconfig.active_paths.sort.should == ["/baz/xyzzy", "/foo/bar"]
+      end
+    end
+    
+    it 'should have a means of determining if a single path is active' do
+      @doucheconfig.should respond_to(:active_path?)
+    end
+    
+    describe 'when determining if a single path is active' do
+      before :each do
+        @path = "/path/to/foo"
+        stub(@doucheconfig).contains?(anything, anything) { false }
+      end
+      
+      it 'should accept a path' do
+        lambda { @doucheconfig.active_path?(@path) }.should_not raise_error(ArgumentError)
+      end
+      
+      it 'should require a path' do
+        lambda { @doucheconfig.active_path? }.should raise_error(ArgumentError)        
+      end
+      
+      it 'should retrieve the directory path' do
+        mock(@doucheconfig).directory { @dir }
+        @doucheconfig.active_path?(@path)
+      end
+
+      it 'should see if the directory path contains the provided path' do
+        mock(@doucheconfig).contains?(@dir, @path)
+        @doucheconfig.active_path?(@path)
+      end
+      
+      it 'should return the result of checking containment' do
+        stub(@doucheconfig).contains?(@dir, @path) { :foo }
+        @doucheconfig.active_path?(@path).should == :foo        
+      end
+    end
+    
+    it 'should be able to test containment of one directory inside another' do
+      @doucheconfig.should respond_to(:contains?)
+    end
+    
+    describe "when testing containment of one directory inside another" do
+      it "should accept two directories (container, containee)" do
+        lambda { @doucheconfig.contains?(:container, :containee) }.should_not raise_error(ArgumentError)
+      end
+      
+      it "should require two directories" do
+        lambda { @doucheconfig.contains?(:container) }.should raise_error(ArgumentError)        
+      end
+      
+      it 'should consider identical paths as containing' do
+        @doucheconfig.contains?('/path/to/foo', '/path/to/foo').should be_true
+      end
+      
+      it 'should not be fooled by relative path elements (/../)' do
+        @doucheconfig.contains?('/path/to/foo', '/path/to/../to/foo').should be_true        
+        @doucheconfig.contains?('/path/to/../to/../to/foo', '/path/to/../to/foo').should be_true        
+      end
+      
+      it 'should not consider independent paths to be containing' do
+        @doucheconfig.contains?('/path/to/foo', '/tmp/bar').should be_false     
+      end
+      
+      it 'should consider containing paths to be containing' do
+        @doucheconfig.contains?('/path/', '/path/to/foo').should be_true
+        @doucheconfig.contains?('/path', '/path/to/').should be_true
+        @doucheconfig.contains?('/path/to/foo/bar', '/path/to/foo/bar/baz').should be_true
+        @doucheconfig.contains?('/path/to', '/path/to/foo/bar/baz/xyzzy').should be_true
+      end
+
+      it 'should consider non-containing paths to not be containing' do
+        @doucheconfig.contains?('/path/to/foo', '/path/').should be_false
+        @doucheconfig.contains?('/path/to/', '/path').should be_false
+        @doucheconfig.contains?('/path/to/foo/bar/baz', '/path/to/foo/bar').should be_false
+        @doucheconfig.contains?('/path/to/foo/bar/baz/xyzzy', '/path/to').should be_false
       end
     end
 

@@ -18,26 +18,18 @@ class Douchebag
 
   def nozzles
     return @nozzles if @nozzles
-    Find.find(nozzle_path) { |nozzle| require nozzle if applicable?(nozzle) }
+    all_nozzles = config.nozzles
+    raise "No nozzles defined in configuration file [#{config.config_path}]!" if all_nozzles.empty?
+    all_nozzles.each {|nozzle| require nozzle_file(nozzle) }
     @nozzles = Nozzle.nozzles
+  end
+
+  def nozzle_file(name)
+    File.join(nozzle_path, "#{name}_nozzle.rb")
   end
 
   def nozzle_path
     File.expand_path(File.dirname(__FILE__) + '/nozzles/')
-  end
-
-  def applicable?(nozzle_path)
-    return false unless name = nozzle_name(nozzle_path)
-    active?(name)
-  end
-
-  def nozzle_name(path)
-    return false unless path =~ /_nozzle\.rb$/
-    path.sub(%r{^(.*/)?([^/]+)_nozzle\.rb$}, '\2')
-  end
-
-  def active?(name)
-    config.nozzle_is_active?(name)
   end
 
   def config
