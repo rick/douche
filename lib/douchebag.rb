@@ -1,4 +1,3 @@
-require 'find'
 require 'nozzle'
 require 'douche_config'
 
