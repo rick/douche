@@ -1,7 +1,9 @@
+require 'nozzle'
+
 class DebugNozzle < Nozzle
   def stank?(file)
     return true unless params['pattern']
-    file =~ Regexp.new(params['pattern'])
+    !! (file =~ Regexp.new(params['pattern']))
   end
 
   def spray(file)
