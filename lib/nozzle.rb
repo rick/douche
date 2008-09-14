@@ -58,7 +58,8 @@ class Nozzle
     @status ||= Gynecologist.new(options)
   end
 
-  def douched
+  def douched(file)
+    status.douched(name, file)
   end
 
   def relative_path(file)

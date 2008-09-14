@@ -428,11 +428,36 @@ describe Nozzle do
     end
 
     describe 'when marking a file as douched' do
-      it 'should accept a filename'
-      it 'should require a filename'
-      it 'should tell the status object to mark the file as douched by this nozzle'
-      it 'should return true if marking the file as douched was successful'
-      it 'should return false if marking the file as douched was not successful'
+      before :each do
+        @file = '/path/to/filename'
+        @name = 'shizzle'
+        stub(@nozzle).name { @name }
+        @status = { }
+        stub(@nozzle).status { @status }
+      end
+      
+      it 'should accept a filename' do
+        lambda { @nozzle.douched(@file) }.should_not raise_error(ArgumentError)
+      end
+      
+      it 'should require a filename' do
+        lambda { @nozzle.douched }.should raise_error(ArgumentError)
+      end
+      
+      it 'should tell the status object to mark the file as douched by this nozzle' do
+        mock(@status).douched(@name, @file)
+        @nozzle.douched(@file)
+      end
+      
+      it 'should return true if marking the file as douched was successful' do
+        stub(@status).douched(@name, @file) { true }
+        @nozzle.douched(@file).should be_true
+      end
+      
+      it 'should return false if marking the file as douched was not successful' do
+        stub(@status).douched(@name, @file) { false }
+        @nozzle.douched(@file).should be_false
+      end
     end
 
     it 'should allow copying a file' do
