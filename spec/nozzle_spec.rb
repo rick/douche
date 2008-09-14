@@ -399,5 +399,42 @@ describe Nozzle do
         @nozzle.douched?(@file).should be_false        
       end
     end
+
+    it 'should allow extracting the relative path for a file' do
+      @nozzle.should respond_to(:relative_path)
+    end
+
+    describe 'when extracting the relative path for a file' do
+      it 'should accept a filename'
+      it 'should require a filename'
+      it 'should return the directory path, relative to the configured directory, of the file'
+    end
+    
+    it 'should allow marking a file as douched' do
+      @nozzle.should respond_to(:douched)
+    end
+
+    describe 'when marking a file as douched' do
+      it 'should accept a filename'
+      it 'should require a filename'
+      it 'should tell the status object to mark the file as douched by this nozzle'
+      it 'should return true if marking the file as douched was successful'
+      it 'should return false if marking the file as douched was not successful'
+    end
+
+    it 'should allow copying a file' do
+      @nozzle.should respond_to(:copy)
+    end
+
+    describe 'when copying a file' do
+      it 'should accept source and destination filenames'
+      it 'should return false if the source file cannot be found'
+      it 'should require source and destination filenames'
+      it 'should create any missing destination directories'
+      it 'should return false if creating missing directories fails'
+      it 'should copy the source file to the destination file'
+      it 'should return false if the copy fails'
+      it 'should return true if the copy is successful'
+    end
   end
 end

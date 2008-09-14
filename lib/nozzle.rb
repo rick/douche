@@ -57,6 +57,15 @@ class Nozzle
   def status
     @status ||= Gynecologist.new(options)
   end
+
+  def douched
+  end
+
+  def relative_path
+  end
+
+  def copy
+  end
   
   private
   

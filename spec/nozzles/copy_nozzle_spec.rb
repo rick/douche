@@ -68,7 +68,9 @@ describe CopyNozzle do
             stub(@nozzle).douched?(@file) { true }
           end
           
-          it 'should not copy the file'
+          it 'should return false' do
+            @nozzle.stank?(@file).should be_false
+          end
         end
         
         describe 'if the file has not been processed before' do
@@ -76,20 +78,71 @@ describe CopyNozzle do
             stub(@nozzle).douched?(@file) { false }
           end
           
-          it 'should copy the file to the destination'
+          it 'should return true' do
+            @nozzle.stank?(@file).should be_true
+          end
         end
       end
     end
 
-  describe 'when spraying a file' do
+    describe 'when spraying a file' do
+      before :each do
+        @file = '/path/to/artist/album/filename'
+        @relative_path = '/artist/album'
+        @destination = '/destination/place'
+        stub(@nozzle).params { { :destination => @destination} }
+        stub(@nozzle).relative_path { @relative_path }
+        stub(@nozzle).copy(anything, anything) { true }
+        stub(@nozzle).douched(@file)
+      end
+      
       it 'should accept a filename' do
-        lambda { @nozzle.spray(:foo) }.should_not raise_error(ArgumentError)
+        lambda { @nozzle.spray(@file) }.should_not raise_error(ArgumentError)
       end
 
       it 'should require a filename' do
-        lambda {  @nozzle.spray }.should raise_error(ArgumentError)
+        lambda { @nozzle.spray }.should raise_error(ArgumentError)
+      end
+
+      it 'should look up the relative path to the file' do
+        mock(@nozzle).relative_path(@file) { @relative_path }
+        @nozzle.spray(@file)
+      end
+
+      it 'should attempt to copy the file to the destination, maintaining the relative path' do
+        mock(@nozzle).copy(@file, File.join(@destination, @relative_path, 'filename')) { true }
+        @nozzle.spray(@file)
+      end
+
+      describe 'if the copy succeeds' do
+        before :each do
+          stub(@nozzle).copy(anything, anything) { true }
+        end
+        
+        it 'should mark the file as douched' do
+          mock(@nozzle).douched(@file)
+          @nozzle.spray(@file)
+        end
+        
+        it 'should return true' do
+          @nozzle.spray(@file).should be_true
+        end
+      end
+
+      describe 'if the copy fails' do
+        before :each do
+          stub(@nozzle).copy(anything, anything) { false }
+        end
+        
+        it 'should not mark the file as douched' do
+          mock(@nozzle).douched.never
+          @nozzle.spray(@file)
+        end
+        
+        it 'should return false' do
+          @nozzle.spray(@file).should be_false
+        end
       end
     end
   end
 end
-
