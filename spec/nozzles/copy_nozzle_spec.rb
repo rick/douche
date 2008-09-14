@@ -38,9 +38,41 @@ describe CopyNozzle do
         lambda { @nozzle.stank? }.should raise_error(ArgumentError)        
       end
 
-      it "should look up the path to the nozzle's status file" do
-        mock(@nozzle).status_file(@file) { '/path/to/status_file' }
-        @nozzle.stank?(@file)
+      describe 'when there is no destination' do
+        before :each do
+          stub(@nozzle).params { { } }
+        end
+        
+        it 'should fail' do
+          lambda { @nozzle.stank?(@file) }.should raise_error
+        end
+      end
+
+      describe 'when there is a destination' do
+        before :each do
+          stub(@nozzle).params { { :destination => '/path/to/destination' } }
+        end
+        
+        it "should check if the file has already been processed before" do
+          mock(@nozzle).seen?(@file)
+          @nozzle.stank?(@file)
+        end
+        
+        describe 'if the file has already been processed before' do
+          before :each do
+            stub(@nozzle).seen?(@file) { true }
+          end
+          
+          it 'should not copy the file'
+        end
+        
+        describe 'if the file has not been processed before' do
+          before :each do
+            stub(@nozzle).seen?(@file) { false }
+          end
+          
+          it 'should copy the file to the destination'
+        end
       end
     end
 

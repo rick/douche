@@ -2,7 +2,8 @@ require 'nozzle'
 
 class CopyNozzle < Nozzle
   def stank?(file)
-    status_file file
+    raise ":destination parameter is required" unless params[:destination]
+    seen?(file)
   end
 
   def spray(file)

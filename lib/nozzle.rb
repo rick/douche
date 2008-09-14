@@ -1,3 +1,5 @@
+require 'gynecologist'
+
 class Nozzle
   attr_reader :options, :directory, :config
   
@@ -54,6 +56,14 @@ class Nozzle
 
   def enclosing_directory(file)
     File.expand_path(File.dirname(file))
+  end
+
+  def seen?(file)
+    status.seen?(file)
+  end
+
+  def status
+    @status ||= Gynecologist.new(options)
   end
   
   private

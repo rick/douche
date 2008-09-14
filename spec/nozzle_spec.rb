@@ -2,6 +2,7 @@ require File.expand_path(File.dirname(__FILE__) + '/spec_helper.rb')
 
 require 'find'
 require 'nozzle'
+require 'gynecologist'
 
 class NozzleA < Nozzle
 end
@@ -357,6 +358,90 @@ describe Nozzle do
         @nozzle.enclosing_directory('/path/to/file').should == '/path/to'
       end
     end
+
+    it 'should allow querying file statuses' do
+      @nozzle.should respond_to(:status)
+    end
+
+    describe 'when querying file statuses' do
+      before :each do
+        @gynecologist = Gynecologist.new(@options)
+      end
+      
+      it 'should work without arguments' do
+        lambda { @nozzle.status }.should_not raise_error(ArgumentError)
+      end
+      
+      it 'should allow no arguments' do
+        lambda { @nozzle.status(:foo) }.should raise_error(ArgumentError)
+      end
+      
+      describe 'the first time' do
+        it 'should instantiate a new status object' do
+          mock(Gynecologist).new(anything) { @gynecologist }
+          @nozzle.status
+        end
+        
+        it 'should provide the options list to the new status object' do
+          mock(Gynecologist).new(@options) { @gynecologist }
+          @nozzle.status
+        end
+        
+        it 'should return the instantiated status object' do
+          stub(Gynecologist).new(@options) { @gynecologist }
+          @nozzle.status.should == @gynecologist
+        end
+      end
+
+      describe 'after the first time' do
+        before :each do
+          @result = @nozzle.status
+        end
+        
+        it 'should not instantiate a new status object' do
+          mock(Gynecologist).new(anything).never
+          @nozzle.status
+        end
+
+        it 'should return the same status object returned the first time' do
+          @nozzle.status.should == @result
+        end
+      end
+    end
+    
+    it 'should allow determining if a file has been seen' do
+      @nozzle.should respond_to(:seen?)
+    end
+
+    describe 'when determining if a file has been seen' do
+      before :each do
+        @file = '/path/to/file'
+        @status = { }
+        stub(@nozzle).status { @status }
+      end
+      
+      it 'should accept a file argument' do
+        lambda { @nozzle.seen?(@file) }.should_not raise_error(ArgumentError)
+      end
+      
+      it 'should require a file argument' do
+        lambda { @nozzle.seen? }.should raise_error(ArgumentError)
+      end
+
+      it 'should ask the status object if it has seen the file' do
+        mock(@status).seen?(@file) { false }
+        @nozzle.seen?(@file)
+      end
+ 
+      it 'should return true if the status object has seen the file' do
+        stub(@status).seen?(@file) { true }
+        @nozzle.seen?(@file).should be_true
+      end
+      
+      it 'should return false if the status object has not seen the file' do
+        stub(@status).seen?(@file) { false }
+        @nozzle.seen?(@file).should be_false        
+      end
+    end
   end
 end
-
