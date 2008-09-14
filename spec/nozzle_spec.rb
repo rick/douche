@@ -405,9 +405,22 @@ describe Nozzle do
     end
 
     describe 'when extracting the relative path for a file' do
-      it 'should accept a filename'
-      it 'should require a filename'
-      it 'should return the directory path, relative to the configured directory, of the file'
+      before :each do
+        @file = '/path/to/artist/album/filename'
+      end
+      
+      it 'should accept a filename' do
+        lambda { @nozzle.relative_path(@file) }.should_not raise_error(ArgumentError)
+      end
+      
+      it 'should require a filename' do
+        lambda { @nozzle.relative_path }.should raise_error(ArgumentError)
+      end
+      
+      it 'should return the directory path, relative to the configured directory, of the file' do
+        stub(@nozzle).directory { '/path/to' }
+        @nozzle.relative_path(@file).should == '/artist/album'
+      end
     end
     
     it 'should allow marking a file as douched' do

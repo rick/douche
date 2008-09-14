@@ -61,7 +61,8 @@ class Nozzle
   def douched
   end
 
-  def relative_path
+  def relative_path(file)
+    File.expand_path(File.dirname(file)).sub(Regexp.new(Regexp.escape(File.expand_path(directory))), '')
   end
 
   def copy
