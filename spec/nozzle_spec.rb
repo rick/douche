@@ -311,6 +311,52 @@ describe Nozzle do
         lambda { @nozzle.spray }.should raise_error(ArgumentError)
       end
     end
+    
+    it "should allow locating a nozzle's status file" do
+      @nozzle.should respond_to(:status_file)
+    end
+    
+    describe "when locating a nozzle's status file" do
+      before :each do
+        stub(@nozzle).enclosing_directory('/path/to/file') { '/path/to' }
+        stub(@nozzle).name { 'shizzle' }
+      end
+      
+      it 'should accept a file path' do
+        lambda { @nozzle.status_file(:foo) }.should_not raise_error(ArgumentError)
+      end
+      
+      it 'should require a file path' do
+        lambda { @nozzle.status_file }.should raise_error(ArgumentError)
+      end
+
+      it 'should look up the enclosing directory for the file' do
+        mock(@nozzle).enclosing_directory('/path/to/file') { '/path/to' }
+        @nozzle.status_file('/path/to/file')
+      end
+
+      it "should return a nozzle-named filename in the file's enclosing directory" do
+        @nozzle.status_file('/path/to/file').should == '/path/to/.douche_shizzle'
+      end
+    end
+
+    it 'should alow locating the enclosing directory for a file' do
+      @nozzle.should respond_to(:enclosing_directory)
+    end
+    
+    describe 'when locating the enclosing directory for a file' do
+      it 'should accept a file argument' do
+        lambda { @nozzle.enclosing_directory(:foo) }.should_not raise_error(ArgumentError)
+      end
+      
+      it 'should require a file argument' do
+        lambda { @nozzle.enclosing_directory }.should raise_error(ArgumentError)
+      end
+      
+      it 'should return the enclosing directory for the file' do
+        @nozzle.enclosing_directory('/path/to/file').should == '/path/to'
+      end
+    end
   end
 end
 
