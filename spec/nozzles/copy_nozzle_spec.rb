@@ -25,7 +25,12 @@ describe CopyNozzle do
   
   describe 'once initialized' do
     before :each do
+      @options = { :directory => '/path/to' }
+      @gyno = Gynecologist.new(@options)
       @nozzle = CopyNozzle.new(@config)
+      stub(@nozzle).status { @gyno }
+      @name = 'copy'
+      stub(@nozzle).name { @name }
       @file = '/path/to/some_file'
     end
     
@@ -54,13 +59,13 @@ describe CopyNozzle do
         end
         
         it "should check if the file has already been processed before" do
-          mock(@nozzle).seen?(@file)
+          mock(@nozzle).douched?(@file)
           @nozzle.stank?(@file)
         end
         
         describe 'if the file has already been processed before' do
           before :each do
-            stub(@nozzle).seen?(@file) { true }
+            stub(@nozzle).douched?(@file) { true }
           end
           
           it 'should not copy the file'
@@ -68,7 +73,7 @@ describe CopyNozzle do
         
         describe 'if the file has not been processed before' do
           before :each do
-            stub(@nozzle).seen?(@file) { false }
+            stub(@nozzle).douched?(@file) { false }
           end
           
           it 'should copy the file to the destination'

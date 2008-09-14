@@ -19,6 +19,15 @@ class Nozzle
     @directory = options[:directory]
   end
 
+  # to be overridden by descendant Nozzles
+  def stank?(file)
+    false
+  end
+  
+  # to be overridden by descendant Nozzles
+  def spray(file)
+  end
+
   def params
     @params ||= config.nozzle_parameters(name)
   end
@@ -41,25 +50,8 @@ class Nozzle
     spray file
   end
   
-  # to be overridden by descendant Nozzles
-  def stank?(file)
-    false
-  end
-  
-  # to be overridden by descendant Nozzles
-  def spray(file)
-  end
-
-  def status_file(file)
-    File.join(enclosing_directory(file), ".douche_#{name}")
-  end
-
-  def enclosing_directory(file)
-    File.expand_path(File.dirname(file))
-  end
-
-  def seen?(file)
-    status.seen?(file)
+  def douched?(file)
+    status.douched?(name, file)
   end
 
   def status
