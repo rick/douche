@@ -465,14 +465,45 @@ describe Nozzle do
     end
 
     describe 'when copying a file' do
-      it 'should accept source and destination filenames'
-      it 'should return false if the source file cannot be found'
-      it 'should require source and destination filenames'
-      it 'should create any missing destination directories'
-      it 'should return false if creating missing directories fails'
-      it 'should copy the source file to the destination file'
-      it 'should return false if the copy fails'
-      it 'should return true if the copy is successful'
+      before :each do
+        @source = '/path/to/source/filename'
+        @dest = '/destination/path/filename'
+        stub(File).makedirs(anything)
+        stub(FileUtils).copy(anything, anything)
+      end
+      
+      it 'should accept source and destination filenames' do
+        lambda { @nozzle.copy(@source, @dest) }.should_not raise_error(ArgumentError)
+      end
+      
+      it 'should require source and destination filenames' do
+        lambda { @nozzle.copy(@source) }.should raise_error(ArgumentError)
+      end
+ 
+      it 'should create any missing destination directories' do
+        mock(File).makedirs('/destination/path')
+        @nozzle.copy(@source, @dest)
+      end
+      
+      it 'should return false if creating missing directories fails' do
+        stub(File).makedirs(anything) { raise "Fail!" }
+        @nozzle.copy(@source, @dest).should be_false
+      end
+ 
+      it 'should copy the source file to the destination file' do
+        mock(FileUtils).copy(@source, @dest)
+        @nozzle.copy(@source, @dest)
+      end
+      
+      it 'should return false if the copy fails' do
+        stub(FileUtils).copy(anything, anything) { raise "Fail!" }
+        @nozzle.copy(@source, @dest).should be_false
+      end
+      
+      it 'should return true if the copy is successful' do
+        stub(FileUtils).copy(anything, anything) { nil }
+        @nozzle.copy(@source, @dest).should be_true
+      end
     end
   end
 end

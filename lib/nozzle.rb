@@ -66,7 +66,12 @@ class Nozzle
     File.expand_path(File.dirname(file)).sub(Regexp.new(Regexp.escape(File.expand_path(directory))), '')
   end
 
-  def copy
+  def copy(src, dest)
+    File.makedirs(File.expand_path(File.dirname(dest)))
+    FileUtils.copy(src, dest)
+    true
+  rescue
+    false
   end
   
   private

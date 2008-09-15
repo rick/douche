@@ -180,8 +180,10 @@ describe Gynecologist do
     describe 'when marking a file as douched by a nozzle' do
       before :each do
         @name = 'shizzle'
+        @hash = { :foo => 'bar' }
         @file = '/path/to/filename'
         stub(@gyno).save_douched_statuses(anything, anything)
+        stub(@gyno).douched_statuses(@name) { @hash }
       end
       
       it 'should accept a nozzle name and filename' do
@@ -193,7 +195,7 @@ describe Gynecologist do
       end
       
       it 'should fetch the douched statuses for the nozzle' do
-        mock(@gyno).douched_statuses(@name)
+        mock(@gyno).douched_statuses(@name) { @hash }
         @gyno.douched(@name, @file)
       end
       
@@ -202,7 +204,10 @@ describe Gynecologist do
         @gyno.douched(@name, @file)
       end
       
-      it 'should include the filename in the saved douched statuses for the nozzle'
+      it 'should include the filename in the saved douched statuses for the nozzle' do
+        mock(@gyno).save_douched_statuses(@name, @hash.merge(@file => true))
+        @gyno.douched(@name, @file)
+      end
     end
 
     it 'should allow saving douched statuses for a nozzle' do
