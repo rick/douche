@@ -55,7 +55,17 @@ describe CopyNozzle do
 
       describe 'when there is a destination' do
         before :each do
-          stub(@nozzle).params { { :destination => '/path/to/destination' } }
+          stub(@nozzle).params { { 'destination' => '/path/to/destination' } }
+        end
+        
+        describe 'when there is a pattern specified in params and the file does not match' do
+          before :each do          
+            stub(@nozzle).params { { 'pattern' => '\.mp3$', 'destination' => '/path/to/dest' } }
+          end
+          
+          it 'should return false' do
+            @nozzle.stank?('/path/to/some.mp4').should be_false
+          end
         end
         
         it "should check if the file has already been processed before" do
@@ -90,7 +100,7 @@ describe CopyNozzle do
         @file = '/path/to/artist/album/filename'
         @relative_path = '/artist/album'
         @destination = '/destination/place'
-        stub(@nozzle).params { { :destination => @destination} }
+        stub(@nozzle).params { { 'destination' => @destination} }
         stub(@nozzle).relative_path { @relative_path }
         stub(@nozzle).copy(anything, anything) { true }
         stub(@nozzle).douched(@file)

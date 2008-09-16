@@ -16,7 +16,7 @@ class Gynecologist
   end
   
   def douched_statuses(nozzle)
-    YAML.load(File.read(status_file(nozzle)))
+    YAML.load(File.read(status_file(nozzle))) || {}
   rescue
     { }
   end

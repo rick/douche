@@ -2,14 +2,17 @@ require 'nozzle'
 
 class CopyNozzle < Nozzle
   def stank?(file)
-    raise ":destination parameter is required" unless params[:destination]
+    raise "'destination' parameter is required" unless params['destination']
+    if params['pattern']
+      return false unless file =~ Regexp.new(params['pattern'])
+    end
     ! douched?(file)
   end
 
   def spray(file)
     normal_relative = normalize(relative_path(file))
     normal_file = normalize(File.basename(file))
-    if copy(file, File.join(params[:destination], normal_relative, normal_file))
+    if copy(file, File.join(params['destination'], normal_relative, normal_file))
       douched(file)
       return true
     end

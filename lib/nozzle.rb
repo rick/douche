@@ -1,4 +1,6 @@
 require 'gynecologist'
+require 'ftools'
+require 'fileutils'
 
 class Nozzle
   attr_reader :options, :directory, :config
