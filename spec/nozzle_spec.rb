@@ -505,5 +505,51 @@ describe Nozzle do
         @nozzle.copy(@source, @dest).should be_true
       end
     end
+
+    it 'should be able to normalize a path' do
+      @nozzle.should respond_to(:normalize)
+    end
+
+    describe 'when normalizing a path' do
+      it 'should accept a path' do
+        lambda { @nozzle.normalize('/path/to/foo') }.should_not raise_error(ArgumentError)
+      end
+      
+      it 'should require a path' do
+        lambda { @nozzle.normalize }.should raise_error(ArgumentError)
+      end
+
+      it 'should return a path with the same number of path components' do
+        @nozzle.normalize('/path/to/foo/bar/baz').split('/').size.should == '/path/to/foo/bar/baz'.split('/').size
+      end
+
+      it 'should leave a leading / intact' do
+        @nozzle.normalize("/yaddayaddayadda").split('').first.should == "/"
+      end      
+
+      it 'should leave trailing / intact' do
+        @nozzle.normalize("yaddayaddayadda/").split('').last.should == "/"
+      end
+
+      it 'should not add a missing leading /' do
+        @nozzle.normalize("yaddayaddayadda").split('').first.should_not == '/'
+      end
+
+      it 'should not add a missing trailing /' do
+        @nozzle.normalize("yaddayaddayadda").split('').last.should_not == '/'
+      end
+
+      it 'should collapse adjacent _ characters' do
+        @nozzle.normalize("yadda_____yadda/y!!!").should == 'yadda_yadda/y_'
+      end
+      
+      it 'should collapse adjacent / characters' do
+        @nozzle.normalize("/////foo/////bar////").should == '/foo/bar/'
+      end
+      
+      it 'should return a path without bad characters' do
+        @nozzle.normalize("/abc/def/0123/get_'()\#$%-back///\" 1.mp3").should == '/abc/def/0123/get_-back/_1.mp3'
+      end
+    end
   end
 end

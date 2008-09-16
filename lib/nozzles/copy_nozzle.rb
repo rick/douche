@@ -7,7 +7,9 @@ class CopyNozzle < Nozzle
   end
 
   def spray(file)
-    if copy(file, File.join(params[:destination], relative_path(file), File.basename(file)))
+    normal_relative = normalize(relative_path(file))
+    normal_file = normalize(File.basename(file))
+    if copy(file, File.join(params[:destination], normal_relative, normal_file))
       douched(file)
       return true
     end

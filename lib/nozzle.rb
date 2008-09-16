@@ -73,6 +73,10 @@ class Nozzle
   rescue
     false
   end
+
+  def normalize(path)
+    path.gsub(%r{[^-a-zA-Z0-9_/\.]}, '_').gsub(%r{/+}, '/').gsub(/_+/, '_')
+  end
   
   private
   

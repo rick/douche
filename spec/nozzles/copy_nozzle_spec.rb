@@ -94,6 +94,8 @@ describe CopyNozzle do
         stub(@nozzle).relative_path { @relative_path }
         stub(@nozzle).copy(anything, anything) { true }
         stub(@nozzle).douched(@file)
+        stub(@nozzle).normalize('filename') { 'normal_file' }
+        stub(@nozzle).normalize(@relative_path) { 'normal_path'  }
       end
       
       it 'should accept a filename' do
@@ -109,8 +111,18 @@ describe CopyNozzle do
         @nozzle.spray(@file)
       end
 
-      it 'should attempt to copy the file to the destination, maintaining the relative path' do
-        mock(@nozzle).copy(@file, File.join(@destination, @relative_path, 'filename')) { true }
+      it 'should normalize the relative path to the file' do
+        mock(@nozzle).normalize(@relative_path) { 'normal_path' }
+        @nozzle.spray(@file)
+      end
+      
+      it 'should normalize the filename' do
+        mock(@nozzle).normalize('filename') { 'normal_file' }
+        @nozzle.spray(@file)
+      end
+
+      it 'should attempt to copy the file to the destination using normalized paths' do
+        mock(@nozzle).copy(@file, File.join(@destination, 'normal_path', 'normal_file')) { true }
         @nozzle.spray(@file)
       end
 
