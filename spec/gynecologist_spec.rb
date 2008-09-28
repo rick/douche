@@ -65,20 +65,45 @@ describe Gynecologist do
       lambda { @gyno.status_file }.should raise_error(ArgumentError)
     end
 
-    it 'should create the ~/.douche directory if it does not exist' do
-      stub(File).directory?(File.join(ENV['HOME'], '.douche')) { false }
-      mock(File).makedirs(File.join(ENV['HOME'], '.douche'))
-      @gyno.status_file(@name)
+    describe 'when no status path was provided as an option' do
+      it 'should create the ~/.douche directory if it does not exist' do
+        stub(File).directory?(File.join(ENV['HOME'], '.douche')) { false }
+        mock(File).makedirs(File.join(ENV['HOME'], '.douche'))
+        @gyno.status_file(@name)
+      end
+      
+      it 'should not create the ~/.douche directory if it already exists' do
+        stub(File).directory?(File.join(ENV['HOME'], '.douche')) { true }
+        mock(File).makedirs(File.join(ENV['HOME'], '.douche')).never
+        @gyno.status_file(@name)
+      end
+      
+      it "should return a gyno-named filename in the users ~/.douche directory" do
+        @gyno.status_file('shizzle').should == File.join(ENV['HOME'], '.douche', '.douche_shizzle')
+      end
     end
 
-    it 'should not create the ~/.douche directory if it already exists' do
-      stub(File).directory?(File.join(ENV['HOME'], '.douche')) { true }
-      mock(File).makedirs(File.join(ENV['HOME'], '.douche')).never
-      @gyno.status_file(@name)
-    end
-    
-    it "should return a gyno-named filename in the users ~/.douche directory" do
-      @gyno.status_file('shizzle').should == File.join(ENV['HOME'], '.douche', '.douche_shizzle')
+    describe 'when a status path was provided as an option' do
+      before :each do
+        @status_path = '/path/to/statuses'
+        @gyno = Gynecologist.new(:status_path => @status_path)
+      end
+      
+      it 'should create the status path directory if it does not exist' do
+        stub(File).directory?(@status_path) { false }
+        mock(File).makedirs(@status_path)
+        @gyno.status_file(@name)
+      end
+      
+      it 'should not create the status path directory if it already exists' do
+        stub(File).directory?(@status_path) { true }
+        mock(File).makedirs(@status_path).never
+        @gyno.status_file(@name)
+      end
+      
+      it "should return a gyno-named filename in the status path directory" do
+        @gyno.status_file('shizzle').should == File.join(@status_path, '.douche_shizzle')
+      end
     end
   end
   

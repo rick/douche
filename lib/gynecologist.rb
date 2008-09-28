@@ -31,8 +31,9 @@ class Gynecologist
   end
   
   def status_file(name)
-    File.makedirs(File.join(ENV['HOME'], '.douche')) unless File.directory?(File.join(ENV['HOME'], '.douche'))
-    File.join(ENV['HOME'], '.douche', ".douche_#{name}")
+    status_path = options[:status_path] ? options[:status_path] : File.join(ENV['HOME'], '.douche')
+    File.makedirs(status_path) unless File.directory?(status_path)
+    File.join(status_path, ".douche_#{name}")
   end
   
   def enclosing_directory(file)
