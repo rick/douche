@@ -1,12 +1,54 @@
+require 'mp3/album'
+
 module MP3
   class Renamer
     attr_reader :directory
-    attr_accessor :album, :artist, :genre, :multiple_artists
+    attr_accessor :multiple_artists
     
     def initialize(directory)
       @directory = directory
     end
 
+    def album_instance
+      @album_instance ||= MP3::Album.new(directory)
+    end
+
+    def album
+      album_instance.name
+    end
+
+    def album=(val)
+      album_instance.name = val
+    end
+    
+    def artist
+      album_instance.artist
+    end
+
+    def artist=(val)
+      album_instance.artist = val
+    end
+    
+    def genre
+      album_instance.genre
+    end
+
+    def genre=(val)
+      album_instance.genre = val
+    end
+    
+    def multiple_artists
+      album_instance.multiple_artists
+    end
+
+    def multiple_artists=(val)
+      album_instance.multiple_artists = val
+    end
+    
+    def songs
+      album_instance.songs
+    end
+    
     def maintain
       show
     end
@@ -16,14 +58,6 @@ module MP3
       puts genre
       multiple_artists
       songs
-    end
-
-    def songs
-      song_files.collect { |f| Song.new(f) }
-    end
-
-    def song_files
-      Dir.open(directory).to_a.select { |f| f =~ /\.mp3$/ }
     end
   end
 end
