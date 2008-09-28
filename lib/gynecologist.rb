@@ -1,3 +1,5 @@
+require 'ftools'
+
 class Gynecologist
   attr_reader :options, :directory
   
@@ -29,7 +31,8 @@ class Gynecologist
   end
   
   def status_file(name)
-    File.join(directory, ".douche_#{name}")
+    File.makedirs(File.join(ENV['HOME'], '.douche')) unless File.directory?(File.join(ENV['HOME'], '.douche'))
+    File.join(ENV['HOME'], '.douche', ".douche_#{name}")
   end
   
   def enclosing_directory(file)

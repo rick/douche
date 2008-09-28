@@ -54,6 +54,7 @@ describe Gynecologist do
     before :each do
       @directory = '/the/main/path'
       stub(@gyno).directory { @directory }
+      ENV['HOME'] = '/home/someuser'
     end
     
     it 'should accept a nozzle name' do
@@ -63,9 +64,21 @@ describe Gynecologist do
     it 'should require a nozzle name' do
       lambda { @gyno.status_file }.should raise_error(ArgumentError)
     end
+
+    it 'should create the ~/.douche directory if it does not exist' do
+      stub(File).directory?(File.join(ENV['HOME'], '.douche')) { false }
+      mock(File).makedirs(File.join(ENV['HOME'], '.douche'))
+      @gyno.status_file(@name)
+    end
+
+    it 'should not create the ~/.douche directory if it already exists' do
+      stub(File).directory?(File.join(ENV['HOME'], '.douche')) { true }
+      mock(File).makedirs(File.join(ENV['HOME'], '.douche')).never
+      @gyno.status_file(@name)
+    end
     
-    it "should return a gyno-named filename in the main configured directory" do
-      @gyno.status_file('shizzle').should == '/the/main/path/.douche_shizzle'
+    it "should return a gyno-named filename in the users ~/.douche directory" do
+      @gyno.status_file('shizzle').should == File.join(ENV['HOME'], '.douche', '.douche_shizzle')
     end
   end
   
