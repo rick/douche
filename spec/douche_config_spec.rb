@@ -318,12 +318,12 @@ describe DoucheConfig do
       end
 
       it 'should see if the directory path contains the provided path' do
-        mock(@doucheconfig).contains?(@dir, @path)
+        mock(@doucheconfig).contains?(@path, @dir)
         @doucheconfig.active_path?(@path)
       end
       
       it 'should return the result of checking containment' do
-        stub(@doucheconfig).contains?(@dir, @path) { :foo }
+        stub(@doucheconfig).contains?(@path, @dir) { :foo }
         @doucheconfig.active_path?(@path).should == :foo        
       end
     end

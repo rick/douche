@@ -48,7 +48,7 @@ class DoucheConfig
   end
   
   def active_path?(path)
-    contains?(directory, path)
+    contains?(path, directory)
   end
   
   def contains?(container, containee)
