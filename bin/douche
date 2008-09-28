@@ -6,7 +6,11 @@ op = OptionParser.new do |opts|
   opts.on('-d', '--dir DIRECTORY', "Directory to process (defaults to .)") do |dir|
     options[:directory]= dir
   end
-
+  
+  opts.on('-s', '--status DIRECTORY', "Directory where status info is stored (defaults to ~/.douche)") do |dir|
+    options[:status_path]= dir
+  end
+  
   opts.on('-c', '--config FILE', "Configuration file (defaults to ~/.douche.yml)") do |config_file|
     options[:config_file]= config_file
   end

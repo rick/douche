@@ -65,6 +65,36 @@ describe 'douche command' do
     end
   end
 
+  describe 'when a status directory is provided on the command-line' do
+    before :each do
+      @dir = '/foo/bar'
+    end
+    
+    describe 'by --status' do
+      before :each do
+        Object.send(:remove_const, :ARGV)
+        ARGV = ["--status", @dir]        
+      end
+      
+      it 'should pass the status_path option when creating a Douche instance' do
+        mock(Douche).new(@default_options.merge(:status_path => @dir)) { @douche }
+        run_command
+      end
+    end
+    
+    describe 'by -s' do
+      before :each do
+        Object.send(:remove_const, :ARGV)
+        ARGV = ["-s", @dir]        
+      end
+      
+      it 'should pass the status_path option when creating a Douche instance' do
+        mock(Douche).new(@default_options.merge(:status_path => @dir)) { @douche }
+        run_command        
+      end
+    end
+  end
+
   describe 'when a configuration file is provided on the command-line' do
     before :each do
       @config_file = '/path/to/.douche.yml'
