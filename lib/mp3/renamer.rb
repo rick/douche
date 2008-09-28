@@ -54,10 +54,14 @@ module MP3
     end
 
     def show
-      puts album
+      puts album + " / " + artist
       puts genre
-      multiple_artists
-      songs
+      puts "Multiple artists? " + (multiple_artists ? 'Yes' : 'No')
+      songs.each { |song| show_song(song) }
+    end
+
+    def show_song(song)
+      puts "[#{song.title}] [#{song.artist}] [#{song.album}]"
     end
   end
 end

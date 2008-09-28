@@ -340,7 +340,10 @@ describe MP3::Renamer do
 
     describe 'when showing the mp3s in the directory' do
       before :each do
-        stub(@renamer).songs { [1, 2, 3] }
+        @songs = [ @song, @song, @song]
+        stub(@renamer).show_song(@song)
+        stub(@renamer).songs { @songs }
+        stub(@renamer).artist { 'Wank Hilliams' }
         stub(@renamer).album { 'Hatest Grits' }
         stub(@renamer).genre { 'Countries' }
         stub(@renamer).multiple_artists { 'word' }
@@ -371,8 +374,50 @@ describe MP3::Renamer do
       end
   
       it 'should look up the song list' do
-        mock(@renamer).songs { [1, 2, 3] }
+        mock(@renamer).songs { @songs }
         @renamer.show
+      end
+
+      it 'should show each song' do
+        mock(@renamer).show_song(@song)
+        @renamer.show
+      end
+    end
+
+    it 'should have a means of showing a song' do
+      @renamer.should respond_to(:show_song)
+    end
+
+    describe 'when showing a song' do
+      before :each do
+        @song = { }
+        stub(@song).title { 'Highway 61' }
+        stub(@song).album { 'Highway 61 (revisited)' }
+        stub(@song).artist { 'Bob Dylan' }
+        stub(@renamer).puts(anything)
+      end
+      
+      it 'should accept a song' do
+        lambda { @renamer.show_song(@song) }.should_not raise_error(ArgumentError)
+      end
+      
+      it 'should require a song' do
+        lambda { @renamer.show_song }.should raise_error(ArgumentError)
+      end
+      
+      it 'should display the song title' do
+        mock(@song).title
+        @renamer.show_song(@song)
+      end
+      
+      it 'should display the song artist' do
+        mock(@song).artist
+        @renamer.show_song(@song)
+      end
+      
+      it 'should display the song album' do
+        mock(@song).album
+        @renamer.show_song(@song)
       end
     end
   end
