@@ -61,7 +61,7 @@ module MP3
     end
 
     def show_song(song)
-      puts "[#{song.title}] [#{song.artist}] [#{song.album}]"
+      puts "#{song.file} [#{song.name}] [#{song.artist}] [#{song.album}]"
     end
   end
 end

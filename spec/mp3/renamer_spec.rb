@@ -391,7 +391,8 @@ describe MP3::Renamer do
     describe 'when showing a song' do
       before :each do
         @song = { }
-        stub(@song).title { 'Highway 61' }
+        stub(@song).file { '/path/to/file.mp3' }
+        stub(@song).name { 'Highway 61' }
         stub(@song).album { 'Highway 61 (revisited)' }
         stub(@song).artist { 'Bob Dylan' }
         stub(@renamer).puts(anything)
@@ -404,9 +405,14 @@ describe MP3::Renamer do
       it 'should require a song' do
         lambda { @renamer.show_song }.should raise_error(ArgumentError)
       end
+
+      it 'should display the song path' do
+        mock(@song).file
+        @renamer.show_song(@song)
+      end
       
-      it 'should display the song title' do
-        mock(@song).title
+      it 'should display the song name' do
+        mock(@song).name
         @renamer.show_song(@song)
       end
       

@@ -270,8 +270,8 @@ describe MP3::Album do
         @album.song_files
       end
       
-      it 'should return a list of the files in the directory which are mp3s' do
-        @album.song_files.should == ["foo.mp3", "bar.mp3"]
+      it 'should return a list of the full paths to files in the directory which are mp3s' do
+        @album.song_files.should == [File.join(@path, "foo.mp3"), File.join(@path, "bar.mp3") ]
       end
     end
   end

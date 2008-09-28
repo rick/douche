@@ -14,7 +14,7 @@ module MP3
     end
     
     def song_files
-      Dir.open(directory).to_a.select { |f| f =~ /\.mp3$/ }
+      Dir.open(directory).to_a.select { |f| f =~ /\.mp3$/ }.collect { |f| File.join(directory, f) }
     end
 
     def name
