@@ -14,17 +14,29 @@ class Gynecologist
   
   def douched(nozzle, file)
     statuses = douched_statuses(nozzle)
-    save_douched_statuses(nozzle, statuses.merge(file => true))
+    statuses[file] = true
+    update_douched_statuses(nozzle, file)
   end
   
   def douched_statuses(nozzle)
-    YAML.load(File.read(status_file(nozzle))) || {}
-  rescue
-    { }
+    return @douched_statuses if @douched_statuses
+    @douched_statuses =
+      begin
+        YAML.load(File.read(status_file(nozzle))) || {}
+      rescue
+        { }
+      end
   end
   
-  def save_douched_statuses(nozzle, statuses)
-    file_create(status_file(nozzle), YAML.dump(statuses))
+  def update_douched_statuses(nozzle, douched_file)
+    file = status_file(nozzle)
+    if File.file?(file)
+      File.open(file, 'a+') do |f|
+        f.puts "#{douched_file}: true"
+      end      
+    else
+      file_create(file, YAML.dump(@douched_statuses))
+    end
     true
   rescue
     false
