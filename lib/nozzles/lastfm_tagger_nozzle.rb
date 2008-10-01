@@ -35,6 +35,9 @@ class LastfmTaggerNozzle < Nozzle
     return false unless info.tag2.TALB and info.tag2.TALB.strip != ''
     return false unless info.tag2.TPE1 and info.tag2.TPE1.strip != ''
     true
+  rescue Exception => e
+    puts "Warning: reading id3v2 tags failed [#{e.to_s}]"
+    return false
   end
 
   def tag_file(file, tags)

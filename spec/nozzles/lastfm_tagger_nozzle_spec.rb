@@ -227,6 +227,11 @@ describe LastfmTaggerNozzle do
         @nozzle.has_id3v2_tags?(@file)
       end
 
+      it 'should return false if the id3v2 lookup fails' do
+        mock(Mp3Info).open(@file) { raise "Fail!" }
+        @nozzle.has_id3v2_tags?(@file).should be_false        
+      end
+
       it 'should return false if the id3v2 tags do not have a title' do
         stub(@tags).TIT2 { '' }
         @nozzle.has_id3v2_tags?(@file).should be_false
