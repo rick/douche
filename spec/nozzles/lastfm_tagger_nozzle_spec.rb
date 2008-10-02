@@ -45,7 +45,7 @@ describe LastfmTaggerNozzle do
       before :each do
         @sweeper = { }
         stub(@sweeper).lookup(@file) { { } }
-        stub(Sweeper).new { @sweeper }
+        stub(@nozzle).sweeper { @sweeper }
         @lastfm = { 'title' => 'Shoot to Thrill', 'artist' => 'AC/DC', 'url' => 'http://last.fm' }
       end
 
@@ -57,8 +57,8 @@ describe LastfmTaggerNozzle do
         lambda { @nozzle.lastfm_tag }.should raise_error(ArgumentError)
       end
 
-      it 'should create an instance of the last.fm tagger' do
-        mock(Sweeper).new { @sweeper }
+      it 'should retrieve the last.fm tagger' do
+        mock(@nozzle).sweeper
         @nozzle.lastfm_tag(@file)
       end
 
@@ -229,7 +229,7 @@ describe LastfmTaggerNozzle do
 
       it 'should return false if the id3v2 lookup fails' do
         mock(Mp3Info).open(@file) { raise "Fail!" }
-        @nozzle.has_id3v2_tags?(@file).should be_false        
+        @nozzle.has_id3v2_tags?(@file).should be_false
       end
 
       it 'should return false if the id3v2 tags do not have a title' do

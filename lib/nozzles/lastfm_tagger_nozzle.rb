@@ -3,6 +3,8 @@ require 'mp3info'
 require 'sweeper'
 require 'nozzle'
 
+@@sweeper = Sweeper.new
+
 class LastfmTaggerNozzle < Nozzle
   def stank?(file)
     return false if params['pattern'] and ! (file =~ Regexp.new(params['pattern']))
@@ -18,7 +20,7 @@ class LastfmTaggerNozzle < Nozzle
   end
 
   def lastfm_tag(file)
-    tags = Sweeper.new.lookup(file)
+    tags = sweeper.lookup(file)
     return false unless tags
     return false unless tags['title'] and tags['title'].strip != ''
     return false unless tags['artist'] and tags['artist'].strip != ''
@@ -57,5 +59,9 @@ class LastfmTaggerNozzle < Nozzle
 
   def filename
     __FILE__
+  end
+
+  def sweeper
+    @@sweeper
   end
 end
