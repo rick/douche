@@ -9,7 +9,7 @@ class LastfmTaggerNozzle < Nozzle
   def stank?(file)
     return false if params['pattern'] and ! (file =~ Regexp.new(params['pattern']))
     return false if douched?(file)
-    ! has_id3v2_tags?(file)
+    ! already_tagged?(file)
   end
 
   def spray(file)
@@ -31,11 +31,9 @@ class LastfmTaggerNozzle < Nozzle
     return false
   end
 
-  def has_id3v2_tags?(file)
+  def already_tagged?(file)
     info = Mp3Info.open(file)
-    return false unless info.tag2.TIT2 and info.tag2.TIT2.strip != ''
-    return false unless info.tag2.TALB and info.tag2.TALB.strip != ''
-    return false unless info.tag2.TPE1 and info.tag2.TPE1.strip != ''
+    return false unless info.tag2.UFID and info.tag2.UFID.strip != ''
     true
   rescue Exception => e
     puts "Warning: reading id3v2 tags failed [#{e.to_s}]"

@@ -35,6 +35,9 @@ describe LastfmTaggerNozzle do
       stub(@nozzle).name { @name }
       stub(@nozzle).params { { } }
       @file = '/path/to/some_file'
+      @sweeper = { }
+      stub(@sweeper).lookup(@file) { { } }
+      stub(Sweeper).new { @sweeper }
     end
 
     it 'should allow tagging a file via last.fm' do
@@ -43,8 +46,8 @@ describe LastfmTaggerNozzle do
 
     describe 'when tagging a file via last.fm' do
       before :each do
-        @sweeper = { }
-        stub(@sweeper).lookup(@file) { { } }
+        stub(@nozzle).puts(anything)
+        stub(Sweeper).new { @sweeper }
         stub(@nozzle).sweeper { @sweeper }
         @lastfm = { 'title' => 'Shoot to Thrill', 'artist' => 'AC/DC', 'url' => 'http://last.fm' }
       end
@@ -55,11 +58,6 @@ describe LastfmTaggerNozzle do
 
       it 'should require a filename' do
         lambda { @nozzle.lastfm_tag }.should raise_error(ArgumentError)
-      end
-
-      it 'should retrieve the last.fm tagger' do
-        mock(@nozzle).sweeper
-        @nozzle.lastfm_tag(@file)
       end
 
       it 'should call the last.fm tagger with the filename' do
@@ -144,6 +142,7 @@ describe LastfmTaggerNozzle do
 
       describe 'if the last.fm tagger returns good results' do
         before :each do
+          stub(@nozzle).sweeper { @sweeper }
           stub(@sweeper).lookup(@file) { @lastfm }
         end
 
@@ -170,6 +169,7 @@ describe LastfmTaggerNozzle do
 
     describe 'when applying id3v2 tags to a file' do
       before :each do
+        stub(@nozzle).puts(anything)
         stub(Mp3Info).open(@file) { { } }
         @tags = { }
       end
@@ -199,59 +199,46 @@ describe LastfmTaggerNozzle do
     end
 
 
-    it 'should allow checking if the file has a full set of id3v2 tags' do
-      @nozzle.should respond_to(:has_id3v2_tags?)
+    it 'should allow checking if the file has already been tagged' do
+      @nozzle.should respond_to(:already_tagged?)
     end
 
-    describe 'when checking if the file has a full set of id3v2 tags' do
+    describe 'when checking if the file has already been tagged' do
       before :each do
+        stub(@nozzle).puts(anything)
         @tags = { }
-        stub(@tags).TIT2 { 'Shoot to Thrill' }
-        stub(@tags).TALB { 'Back in Black' }
-        stub(@tags).TPE1 { 'AC/DC' }
+        stub(@tags).UFID { 'http://www.last.fm/music/Marvin+Gaye/_/Marvin%27s+Message+to+CBS+Records+Staff' }
         @mp3info = { }
         stub(@mp3info).tag2 { @tags }
         stub(Mp3Info).open(@file) { @mp3info }
       end
 
       it 'should accept a filename' do
-        lambda { @nozzle.has_id3v2_tags?(@file) }.should_not raise_error(ArgumentError)
+        lambda { @nozzle.already_tagged?(@file) }.should_not raise_error(ArgumentError)
       end
 
       it 'should require a filename' do
-        lambda { @nozzle.has_id3v2_tags? }.should raise_error(ArgumentError)
+        lambda { @nozzle.already_tagged? }.should raise_error(ArgumentError)
       end
 
       it 'should read the id3v2 tags from the file' do
         mock(Mp3Info).open(@file) { @mp3info }
-        @nozzle.has_id3v2_tags?(@file)
+        @nozzle.already_tagged?(@file)
       end
 
       it 'should return false if the id3v2 lookup fails' do
         mock(Mp3Info).open(@file) { raise "Fail!" }
-        @nozzle.has_id3v2_tags?(@file).should be_false
+        @nozzle.already_tagged?(@file).should be_false        
       end
 
-      it 'should return false if the id3v2 tags do not have a title' do
-        stub(@tags).TIT2 { '' }
-        @nozzle.has_id3v2_tags?(@file).should be_false
+      it 'should return false if the id3v2 tags do not have an UFID' do
+        stub(@tags).UFID { '' }
+        @nozzle.already_tagged?(@file).should be_false
       end
 
-      it 'should return false if the id3v2 tags do not have an album' do
-        stub(@tags).TALB { '' }
-        @nozzle.has_id3v2_tags?(@file).should be_false
-      end
-
-      it 'should return false if the id3v2 tags do not have an artist' do
-        stub(@tags).TPE1 { '' }
-        @nozzle.has_id3v2_tags?(@file).should be_false
-      end
-
-      it 'should return true if the id3v2 tags includes a title, album, and artist' do
-        stub(@tags).TIT2 { 'Shoot to Thrill' }
-        stub(@tags).TALB { 'Back in Black' }
-        stub(@tags).TPE1 { 'AC/DC' }
-        @nozzle.has_id3v2_tags?(@file).should be_true
+      it 'should return true if the id3v2 tags include an UFID' do
+        stub(@tags).UFID { 'http://www.last.fm/music/Marvin+Gaye/_/Marvin%27s+Message+to+CBS+Records+Staff' }
+        @nozzle.already_tagged?(@file).should be_true
       end
     end
 
@@ -295,17 +282,17 @@ describe LastfmTaggerNozzle do
         end
 
         it 'should check if the file has full id3v2 tags' do
-          mock(@nozzle).has_id3v2_tags?(@file) { false }
+          mock(@nozzle).already_tagged?(@file) { false }
           @nozzle.stank?(@file)
         end
 
         it 'should return true if the file does not have an id3v2 title tag' do
-          stub(@nozzle).has_id3v2_tags?(@file) { false }
+          stub(@nozzle).already_tagged?(@file) { false }
           @nozzle.stank?(@file).should be_true
         end
 
         it 'should return false if the file has an id3v2 title tag' do
-          stub(@nozzle).has_id3v2_tags?(@file) { true }
+          stub(@nozzle).already_tagged?(@file) { true }
           @nozzle.stank?(@file).should be_false
         end
       end
@@ -313,6 +300,7 @@ describe LastfmTaggerNozzle do
 
     describe 'when spraying a file' do
       before :each do
+        stub(@nozzle).puts(anything)
         @file = '/path/to/artist/album/filename'
         @relative_path = '/artist/album'
         stub(@nozzle).params { { } }
