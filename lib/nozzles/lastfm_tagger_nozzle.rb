@@ -9,6 +9,7 @@ class LastfmTaggerNozzle < Nozzle
   def stank?(file)
     return false if params['pattern'] and ! (file =~ Regexp.new(params['pattern']))
     return false if douched?(file)
+    return false if flagged_with_error?(file)
     ! already_tagged?(file)
   end
 
@@ -28,6 +29,7 @@ class LastfmTaggerNozzle < Nozzle
     return tag_file(file, tags)
   rescue Exception => e
     puts "Warning: last.fm tagger raised error [#{e.to_s}]"
+    flag_error(file)
     return false
   end
 
@@ -51,6 +53,14 @@ class LastfmTaggerNozzle < Nozzle
   rescue Exception => e
     puts "Warning: tagging file encountered error [#{e.to_s}]"
     return false
+  end
+
+  def flag_error(file)
+    File.open(File.join(File.dirname(file), ".douche_error_lastfm_tagging-#{File.basename(file, '.mp3')}"), 'w')
+  end
+
+  def flagged_with_error?(file)
+    File.file?(File.join(File.dirname(file), ".douche_error_lastfm_tagging-#{File.basename(file, '.mp3')}"))
   end
 
   private

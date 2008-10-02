@@ -70,6 +70,11 @@ describe LastfmTaggerNozzle do
           stub(@sweeper).lookup(@file) { raise "Fail!!!" }
         end
 
+        it 'should record the error' do
+          mock(@nozzle).flag_error(@file)
+          @nozzle.lastfm_tag(@file)
+        end
+
         it 'should not tag the file' do
           mock(@nozzle).tag_file(@file, anything).never
           @nozzle.lastfm_tag(@file)
@@ -198,7 +203,6 @@ describe LastfmTaggerNozzle do
       end
     end
 
-
     it 'should allow checking if the file has already been tagged' do
       @nozzle.should respond_to(:already_tagged?)
     end
@@ -228,7 +232,7 @@ describe LastfmTaggerNozzle do
 
       it 'should return false if the id3v2 lookup fails' do
         mock(Mp3Info).open(@file) { raise "Fail!" }
-        @nozzle.already_tagged?(@file).should be_false        
+        @nozzle.already_tagged?(@file).should be_false
       end
 
       it 'should return false if the id3v2 tags do not have an UFID' do
@@ -243,6 +247,10 @@ describe LastfmTaggerNozzle do
     end
 
     describe 'when checking if a file is stank' do
+      before :each do
+        stub(@nozzle).flagged_with_error?(@file) { false }
+      end
+
       it 'should accept a filename' do
         lambda { @nozzle.stank?(:foo) }.should_not raise_error(ArgumentError)
       end
@@ -281,6 +289,16 @@ describe LastfmTaggerNozzle do
           stub(@nozzle).douched?(@file) { false }
         end
 
+        it 'should check if the file has a recorded tagging error' do
+          mock(@nozzle).flagged_with_error?(@file) { false }
+          @nozzle.stank?(@file)
+        end
+
+        it 'should return false if the file has a recorded tagging error' do
+          stub(@nozzle).flagged_with_error?(@file) { true }
+          @nozzle.stank?(@file).should be_false
+        end
+
         it 'should check if the file has full id3v2 tags' do
           mock(@nozzle).already_tagged?(@file) { false }
           @nozzle.stank?(@file)
@@ -295,6 +313,54 @@ describe LastfmTaggerNozzle do
           stub(@nozzle).already_tagged?(@file) { true }
           @nozzle.stank?(@file).should be_false
         end
+      end
+    end
+
+    it 'should have a means of marking a file as having an encoding error' do
+      @nozzle.should respond_to(:flag_error)
+    end
+
+    describe 'when marking a file as having an encoding error' do
+      before :each do
+        @badfile = File.join(File.dirname(@file), ".douche_error_lastfm_tagging-#{File.basename(@file, '.mp3')}")
+        stub(File).open(@badfile, 'w')
+      end
+
+      it 'should accept a file path' do
+        lambda { @nozzle.flag_error(@file) }.should_not raise_error(ArgumentError)
+      end
+
+      it 'should require a file path' do
+        lambda { @nozzle.flag_error }.should raise_error(ArgumentError)
+      end
+
+      it 'should touch a bad encoding file for the provided file' do
+        mock(File).open(@badfile, 'w')
+        @nozzle.flag_error(@file)
+      end
+    end
+
+    it 'should allow checking if a file has been flagged with an error' do
+      @nozzle.should respond_to(:flagged_with_error?)
+    end
+
+    describe 'when checking if a file has been flagged with an error' do
+      it 'should accept a filename' do
+        lambda { @nozzle.flagged_with_error?(@file) }.should_not raise_error(ArgumentError)
+      end
+
+      it 'should require a filename' do
+        lambda { @nozzle.flagged_with_error? }.should raise_error(ArgumentError)
+      end
+
+      it 'should return true if an error file is present' do
+        stub(File).file?("/path/to/.douche_error_lastfm_tagging-some_file") { true }
+        @nozzle.flagged_with_error?(@file).should be_true
+      end
+
+      it 'should return false if an error file is not present' do
+        stub(File).file?("/path/to/.douche_error_lastfm_tagging-some_file") { false }
+        @nozzle.flagged_with_error?(@file).should be_false
       end
     end
 
