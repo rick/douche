@@ -1,0 +1,6 @@
+gem "activesupport", "~> 3.0.0"
+gem "mp3info"
+gem "rspec", "~> 1.3.0"
+gem "rr"
+gem "flac2mp3"
+gem "sweeper"

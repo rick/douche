@@ -1,3 +1,5 @@
+require 'rubygems'
+require 'isolate/now'
 require 'rake'
 require 'rake/testtask'
 require 'rake/rdoctask'
