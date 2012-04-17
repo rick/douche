@@ -1,92 +1,41 @@
-require 'find'
-require 'mp3/album'
 require 'rubygems'
-require 'highline/import'
-require 'ftools'
+require 'isolate/now'
+require 'nokogiri'
+require 'open-uri'
+require 'uri'
 
-@path = '/Volumes/share/audio/'
-@count = 0
+file = ARGV.shift
+raise "cannot find file: #{file}" unless File.exists?(file)
 
-def go(cmd)
-  grey(cmd)
-#  `#{cmd}`
+binary = 'lastfmfpclient'
+xml = `#{binary} "#{file}"`
+doc = Nokogiri::XML(xml)
+
+def escape_url_component(component)
+  URI.escape(component.gsub(' ', '+'))
 end
 
-def grey(str)
-  say("<%= color(%q!#{str}!, :cyan) %>")
+def album_url(artist, name)
+  "http://www.last.fm/music/#{escape_url_component(artist)}/_/#{escape_url_component(name)}/+albums"
 end
 
-def red(str)
-  say("<%= color(%q!#{str}!, :black, :on_red) %>")
+tracks = doc.xpath('//tracks/track')
+raise "No matching songs found" unless tracks.size > 0 
+track    = tracks.first
+rank     = track['rank'].to_f
+name     = track.xpath('name').text
+artist   = track.xpath('artist/name').text
+duration = track.xpath('duration').text
+url      = track.xpath('url').text
+albumurl = album_url(artist, name)
+
+puts "(#{rank}) File [#{file}]\n  name[#{name}]\n  artist[#{artist}]\n  duration[#{duration}]\n  url[#{url}]\n  albumurl[#{albumurl}]"
+
+albumpage = Nokogiri::HTML(open(albumurl))
+albumlinks = albumpage.css('ul.albums li div strong a')
+raise "NO ALBUMS FOUND" unless albumlinks.size > 0
+
+albumlinks.each do |link|
+  puts "    album: \"#{link.text.strip}\" => http://www.last.fm#{link['href']}"
 end
 
-def yellow(str)
-  say("<%= color(%q!#{str}!, :black, :on_yellow) %>")
-end
-
-def green(str)
-  say("<%= color(%q!#{str}!, :green) %>")
-end
-
-def ambiguous(dir)
-  go %Q{mv "#{dir}" #{@path}/ambiguous/}
-end
-
-def duplicate(src, artist, album)
-  @count += 1
-  go %Q{mkdir #{@path}/duplicates/#{@count}/#{artist}}
-  go %Q{mv "#{src}" #{@path}/duplicates/#{@count}/#{artist}/#{album}}
-end
-
-def fail(dir)
-  @count += 1
-  go %Q{mkdir #{@path}/bad/#{@count}/}
-  go %Q{mv "#{dir}" #{@path}/bad/#{@count}/}
-end
-
-class String
-  def normalize
-    gsub(%r{[^-a-zA-Z0-9_\.]}, '_').gsub(/_+/, '_').sub(/^_/, '').sub(/_$/, '').downcase
-  end
-end
-
-def rename(dir, artist, album)
-  artist = artist.normalize
-  album = album.normalize
-  go "mkdir -p #{@path}/mp3/#{artist}"
-  if File.directory?("#{@path}/mp3/#{artist}/#{album}")
-    yellow "duplicate #{@path}/mp3/#{artist}/#{album}" 
-    duplicate(dir, artist, album)
-  else
-    go %Q{mv "#{dir}" #{@path}/mp3/#{artist}/#{album}}
-  end
-end
-
-Find.find("#{@path}/mp3-old") do |filename|
-  next unless File.directory?(filename)
-  begin
-    m = MP3::Album.new(filename)
-    next if m.song_files.empty?
-  
-    if m.multiple_artists
-      if !m.name or m.name =~ /^\s*$/
-        yellow "[#{filename}] -> *** Various Artists album with no name ***"
-        ambiguous(filename)
-      else
-        green "[#{filename}] -> *Various, Album [#{m.name}]"
-        rename(filename, 'Various', m.name)
-      end
-    else
-      if !m.name or m.name =~ /^\s*$/ or !m.artist or m.artist =~ /^\s*$/
-        yellow "[#{filename}] -> *** Album with blank artist [#{m.artist}] or album [#{m.name}] ***"
-        ambiguous(filename)
-      else
-        green "[#{filename}] -> Artist [#{m.artist.inspect}], Album [#{m.name.inspect}]"
-        rename(filename, m.artist, m.name)
-      end
-    end
-  rescue Exception => e
-    red "error [#{e.to_s}] on [#{filename}]"
-    fail(filename)
-  end
-end
